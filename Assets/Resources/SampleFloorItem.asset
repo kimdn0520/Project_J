@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8972cef326921054eba520aab1d43068, type: 3}
+  m_Name: SampleFloorItem
+  m_EditorClassIdentifier: Assembly-CSharp::LevelItemData
+  itemName: "\uC0D8\uD50C \uBC14\uB2E5 \uD0C0\uC77C"
+  thumbnail: {fileID: 21300000, guid: d9e4f31d60fd36b4d80196d2f7fec537, type: 3}
+  itemType: 0
+  targetLayerName: Floor_Tilemap
+  tile: {fileID: 11400000, guid: 899acb622888cb747848453c7005f78d, type: 2}
+  prefab: {fileID: 0}
+  pivotOffset: {x: 0, y: 0, z: 0}
