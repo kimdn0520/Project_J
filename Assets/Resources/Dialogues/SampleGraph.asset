@@ -1,0 +1,151 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0626334b4965fb744a11f32000a84cc0, type: 3}
+  m_Name: SampleGraph
+  m_EditorClassIdentifier: Assembly-CSharp::DialogSystem.DialogueContainerSO
+  nodeLinks:
+  - baseNodeGuid: eadce465-90db-469c-a2ea-07d237b03567
+    targetNodeGuid: 917ec55a-2acd-4b17-a94d-f7fc20c94bab
+    portName: Next
+  - baseNodeGuid: 917ec55a-2acd-4b17-a94d-f7fc20c94bab
+    targetNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+    portName: Next
+  - baseNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+    targetNodeGuid: 666b69c8-25e6-4ee6-b2e2-5dafe83f2a08
+    portName: Choice_0
+  - baseNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+    targetNodeGuid: d60d5791-c47f-4fde-a831-317afbad552a
+    portName: Choice_1
+  - baseNodeGuid: 666b69c8-25e6-4ee6-b2e2-5dafe83f2a08
+    targetNodeGuid: 8ba6f899-b406-4770-b486-c665f000f483
+    portName: Choice_0
+  - baseNodeGuid: 666b69c8-25e6-4ee6-b2e2-5dafe83f2a08
+    targetNodeGuid: faf303df-1911-46e8-8cd7-debe5cd323f6
+    portName: Choice_1
+  - baseNodeGuid: 666b69c8-25e6-4ee6-b2e2-5dafe83f2a08
+    targetNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+    portName: Choice_2
+  - baseNodeGuid: d60d5791-c47f-4fde-a831-317afbad552a
+    targetNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+    portName: Next
+  - baseNodeGuid: faf303df-1911-46e8-8cd7-debe5cd323f6
+    targetNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+    portName: Next
+  - baseNodeGuid: 8ba6f899-b406-4770-b486-c665f000f483
+    targetNodeGuid: eecb2dea-f6e3-4fc7-ae05-0ebb77eec73a
+    portName: Next
+  dialogueNodes:
+  - guid: eadce465-90db-469c-a2ea-07d237b03567
+    id: start_game
+    speaker: 
+    text: "\uC815\uC2E0\uC744 \uCC28\uB824\uBCF4\uB2C8 \uB0AF\uC120 \uC800\uD0DD\uC758
+      \uBCF5\uB3C4\uC5D0 \uC11C \uC788\uB2E4. \uD55C\uAE30\uAC00 \uC0B4\uC744 \uCC0C\uB974\uB294
+      \uAC83 \uAC19\uB2E4."
+    triggerEvent: light_flicker
+    position: {x: 100, y: 250}
+    choices: []
+    nextNodeGuid: 917ec55a-2acd-4b17-a94d-f7fc20c94bab
+  - guid: 917ec55a-2acd-4b17-a94d-f7fc20c94bab
+    id: mansion_intro_2
+    speaker: "\uC8FC\uC778\uACF5"
+    text: "\uC5EC\uAE34 \uC5B4\uB514\uC9C0...? \uBC29\uAE08 \uC804\uAE4C\uC9C0 \uC9D1\uC5D0
+      \uC788\uC5C8\uB294\uB370..."
+    triggerEvent: 
+    position: {x: 400, y: 250}
+    choices: []
+    nextNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+  - guid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+    id: mansion_choice
+    speaker: 
+    text: "\uBCF5\uB3C4 \uB05D\uC5D0 \uAD73\uAC8C \uB2EB\uD78C \uBB38\uC774 \uC788\uACE0,
+      \uBC14\uB2E5\uC5D0\uB294 \uB0A1\uC740 \uC885\uC774 \uC870\uAC01\uC774 \uB5A8\uC5B4\uC838
+      \uC788\uB2E4."
+    triggerEvent: 
+    position: {x: 700, y: 250}
+    choices:
+    - text: "\uBB38\uC73C\uB85C \uB2E4\uAC00\uAC04\uB2E4"
+      nextNodeGuid: 666b69c8-25e6-4ee6-b2e2-5dafe83f2a08
+      requiredFlag: 
+      requiredItem: 
+      setFlag: 
+      triggerEvent: 
+    - text: "\uC885\uC774 \uC870\uAC01\uC744 \uC90D\uB294\uB2E4"
+      nextNodeGuid: d60d5791-c47f-4fde-a831-317afbad552a
+      requiredFlag: 
+      requiredItem: 
+      setFlag: 
+      triggerEvent: 
+    nextNodeGuid: 
+  - guid: 666b69c8-25e6-4ee6-b2e2-5dafe83f2a08
+    id: door_interact
+    speaker: 
+    text: "\uBB38\uC740 \uAD73\uAC8C \uC7A0\uACA8 \uC788\uB2E4. \uC5F4\uC1E0 \uAD6C\uBA4D\uC740
+      \uB179\uC2AC\uC5B4 \uC788\uB2E4."
+    triggerEvent: 
+    position: {x: 1050, y: 100}
+    choices:
+    - text: "\uC5F4\uC1E0\uB97C \uC0AC\uC6A9\uD574\uBCF8\uB2E4"
+      nextNodeGuid: 8ba6f899-b406-4770-b486-c665f000f483
+      requiredFlag: 
+      requiredItem: mansion_key
+      setFlag: 
+      triggerEvent: 
+    - text: "\uBAB8\uC73C\uB85C \uBC00\uC5B4\uBCF8\uB2E4"
+      nextNodeGuid: faf303df-1911-46e8-8cd7-debe5cd323f6
+      requiredFlag: 
+      requiredItem: 
+      setFlag: 
+      triggerEvent: 
+    - text: "\uB3CC\uC544\uC120\uB2E4"
+      nextNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+      requiredFlag: 
+      requiredItem: 
+      setFlag: 
+      triggerEvent: 
+    nextNodeGuid: 
+  - guid: d60d5791-c47f-4fde-a831-317afbad552a
+    id: paper_interact
+    speaker: 
+    text: "\uB0A1\uC740 \uC885\uC774\uC5D0\uB294 \uD53C\uB85C \uC4F4 \uB4EF\uD55C
+      \uAE00\uC528\uAC00 \uC801\uD600 \uC788\uB2E4.\n<color=red>'\uC5F4\uC1E0\uB294
+      \uCC45\uC0C1 \uC11C\uB78D \uC18D\uC5D0...'</color>"
+    triggerEvent: gain_key_hint
+    position: {x: 1050, y: 450}
+    choices: []
+    nextNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+  - guid: faf303df-1911-46e8-8cd7-debe5cd323f6
+    id: door_push
+    speaker: "\uC8FC\uC778\uACF5"
+    text: "\uC73D... \uB044\uB5A1\uB3C4 \uD558\uC9C0 \uC54A\uB294\uB2E4. \uC5F4\uC1E0\uB97C
+      \uCC3E\uC544\uC57C \uD560 \uAC83 \uAC19\uB2E4."
+    triggerEvent: camera_shake
+    position: {x: 1400, y: 10}
+    choices: []
+    nextNodeGuid: 89e6cccf-fa55-4f8d-b314-e1584af8232a
+  - guid: 8ba6f899-b406-4770-b486-c665f000f483
+    id: door_unlock
+    speaker: 
+    text: "\uCC30\uCE75. \uC5F4\uC1E0\uAC00 \uBD80\uB4DC\uB7FD\uAC8C \uB3CC\uC544\uAC00\uBA70
+      \uBB38\uC774 \uC5F4\uB9B0\uB2E4."
+    triggerEvent: play_door_open_sound
+    position: {x: 1400, y: 220}
+    choices: []
+    nextNodeGuid: eecb2dea-f6e3-4fc7-ae05-0ebb77eec73a
+  - guid: eecb2dea-f6e3-4fc7-ae05-0ebb77eec73a
+    id: escape_success
+    speaker: 
+    text: "\uBB38 \uB108\uBA38\uB85C \uC5B4\uB450\uC6B4 \uC232\uC774 \uBCF4\uC778\uB2E4.
+      \uB9C8\uCE68\uB0B4 \uC774\uACF3\uC744 \uBE60\uC838\uB098\uC654\uB2E4."
+    triggerEvent: game_over_win
+    position: {x: 1700, y: 220}
+    choices: []
+    nextNodeGuid: 

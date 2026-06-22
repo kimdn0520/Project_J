@@ -1,0 +1,110 @@
+{
+  "dialogues": [
+    {
+      "id": "start_game",
+      "speaker": "",
+      "text": "정신을 차려보니 낯선 저택의 복도에 서 있다. 한기가 살을 찌르는 것 같다.",
+      "nextNodeId": "mansion_intro_2",
+      "triggerEvent": "light_flicker",
+      "choices": []
+    },
+    {
+      "id": "mansion_intro_2",
+      "speaker": "주인공",
+      "text": "여긴 어디지...? 방금 전까지 집에 있었는데...",
+      "nextNodeId": "mansion_choice",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "mansion_choice",
+      "speaker": "",
+      "text": "복도 끝에 굳게 닫힌 문이 있고, 바닥에는 낡은 종이 조각이 떨어져 있다.",
+      "nextNodeId": "",
+      "triggerEvent": "",
+      "choices": [
+        {
+          "text": "문으로 다가간다",
+          "nextNodeId": "door_interact",
+          "requiredFlag": "",
+          "requiredItem": "",
+          "setFlag": "",
+          "triggerEvent": ""
+        },
+        {
+          "text": "종이 조각을 줍는다",
+          "nextNodeId": "paper_interact",
+          "requiredFlag": "",
+          "requiredItem": "",
+          "setFlag": "picked_up_paper",
+          "triggerEvent": ""
+        }
+      ]
+    },
+    {
+      "id": "door_interact",
+      "speaker": "",
+      "text": "문은 굳게 잠겨 있다. 열쇠 구멍은 녹슬어 있다.",
+      "nextNodeId": "",
+      "triggerEvent": "",
+      "choices": [
+        {
+          "text": "열쇠를 사용해본다",
+          "nextNodeId": "door_unlock",
+          "requiredFlag": "",
+          "requiredItem": "mansion_key",
+          "setFlag": "",
+          "triggerEvent": ""
+        },
+        {
+          "text": "몸으로 밀어본다",
+          "nextNodeId": "door_push",
+          "requiredFlag": "",
+          "requiredItem": "",
+          "setFlag": "",
+          "triggerEvent": ""
+        },
+        {
+          "text": "돌아선다",
+          "nextNodeId": "mansion_choice",
+          "requiredFlag": "",
+          "requiredItem": "",
+          "setFlag": "",
+          "triggerEvent": ""
+        }
+      ]
+    },
+    {
+      "id": "paper_interact",
+      "speaker": "",
+      "text": "낡은 종이에는 피로 쓴 듯한 글씨가 적혀 있다.\n<color=red>'열쇠는 책상 서랍 속에...'</color>",
+      "nextNodeId": "mansion_choice",
+      "triggerEvent": "gain_key_hint",
+      "choices": []
+    },
+    {
+      "id": "door_unlock",
+      "speaker": "",
+      "text": "찰칵. 열쇠가 부드럽게 돌아가며 문이 열린다.",
+      "nextNodeId": "escape_success",
+      "triggerEvent": "play_door_open_sound",
+      "choices": []
+    },
+    {
+      "id": "door_push",
+      "speaker": "주인공",
+      "text": "윽... 끄떡도 하지 않는다. 열쇠를 찾아야 할 것 같다.",
+      "nextNodeId": "mansion_choice",
+      "triggerEvent": "camera_shake",
+      "choices": []
+    },
+    {
+      "id": "escape_success",
+      "speaker": "",
+      "text": "문 너머로 어두운 숲이 보인다. 마침내 이곳을 빠져나왔다.",
+      "nextNodeId": "",
+      "triggerEvent": "game_over_win",
+      "choices": []
+    }
+  ]
+}
