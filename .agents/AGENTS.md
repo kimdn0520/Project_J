@@ -1,8 +1,72 @@
 # Antigravity Workspace Rules & Project Status
 
 ## 📌 Project Context
-Unity 2D/3D 호러 쯔꾸르 장르 게임 프로젝트.
-Match-3 퍼즐 + 레벨에디터 + 다이얼로그 시스템으로 구성.
+Unity 2D 호러 쯔꾸르 장르 게임 프로젝트. (이브, 괴이증후군 류)
+Match-3 퍼즐 + 씬 기반 맵 시스템 + 다이얼로그 시스템으로 구성.
+
+---
+
+## ✅ 다음 작업 (우선순위 순)
+
+1. **LevelEditor 씬 및 관련 스크립트 전체 제거**
+   - 제거 대상: `Assets/Scripts/LevelEditor/` 폴더 전체, `Assets/Editor/LevelEditorSetupHelper.cs`, LevelEditor 씬
+   - `LevelSaveLoad.cs`, `LevelItemData.cs` → 일단 보류 후 필요 없으면 제거
+
+2. **씬 기반 맵 시스템 구축** → 아래 섹션 참고
+
+---
+
+## 🗺️ 씬 기반 맵 시스템 (구축 예정)
+
+### 설계 방향
+- 맵 하나 = 씬 하나 (`Assets/Scenes/Maps/Map_01_xxx.unity` 등)
+- 맵 이동: `LoadSceneAsync` + 암전 연출 (로딩 자체가 공포 연출)
+- 플레이어/BGM/GameManager 등 영속 오브젝트는 **Persistent 씬**에서 관리
+
+### 씬 구조
+```
+Scenes/
+  Persistent.unity       ← DontDestroyOnLoad 오브젝트들 (항상 유지)
+  Maps/
+    Map_01_Gallery.unity
+    Map_02_Corridor.unity
+    Map_03_Basement.unity
+    ...
+```
+
+### SpawnPoint 시스템
+- 각 맵 씬에 빈 GameObject `SpawnPoint` 여러 개 배치, 고유 `spawnId` 부여
+- 문(출입구) 오브젝트가 `targetScene` + `targetSpawnId` 를 가짐
+- 씬 로드 완료 후 해당 `spawnId`의 SpawnPoint 위치로 플레이어 텔포
+
+```
+Map_02_Corridor.unity
+  └ SpawnPoints/
+      └ SpawnPoint (spawnId: "from_map01")
+      └ SpawnPoint (spawnId: "from_map03")
+```
+
+### 구현할 스크립트
+| 스크립트 | 위치 | 역할 |
+|---------|------|------|
+| `SceneTransitionManager.cs` | Persistent 씬 | 씬 로드/언로드, 암전 연출, NextSpawnId 전달 |
+| `SceneDoor.cs` | 각 맵 씬 출입구 | targetScene + targetSpawnId 보유, 플레이어 접촉 시 전환 트리거 |
+| `SpawnPoint.cs` | 각 맵 씬 | spawnId 보유, 씬 시작 시 NextSpawnId와 매칭되면 플레이어 이동 |
+
+### 전환 흐름
+```
+플레이어가 SceneDoor에 닿음
+  → SceneTransitionManager.Load(targetScene, targetSpawnId)
+  → 암전 (DOTween 페이드)
+  → 현재 맵 씬 UnloadSceneAsync
+  → 다음 맵 씬 LoadSceneAsync
+  → SpawnPoint가 플레이어 위치 설정
+  → 밝아짐
+```
+
+### 메모리 관련
+- 씬 Unload 시 Unity가 해당 씬 에셋 자동 해제 (프리팹 방식보다 유리)
+- Persistent 씬 오브젝트만 메모리에 유지됨
 
 ---
 
