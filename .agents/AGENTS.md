@@ -1,36 +1,147 @@
 # Antigravity Workspace Rules & Project Status
 
 ## 📌 Project Context
-This is a Unity 2D/3D Horror Tsukur game project.
-We have designed and fully implemented a custom decoupled **Dialogue & Node Editor System** in `Assets/Scripts/DialogSystem/`.
+Unity 2D/3D 호러 쯔꾸르 장르 게임 프로젝트.
+Match-3 퍼즐 + 레벨에디터 + 다이얼로그 시스템으로 구성.
 
 ---
 
-## 📂 Active Dialogue System Architecture
-All scripts reside in [Assets/Scripts/DialogSystem/](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/) folder.
+## 🗺️ 레벨에디터 시스템 (LevelEditor Scene)
+> **마지막 작업: 2026-06-23** — 레벨에디터 UI 전면 개편
 
-1. **[IInteractable.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/IInteractable.cs)**: Polymorphic interface for all player interactions (NPCs, examining spots, drawers).
-2. **[DialogueModel.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/DialogueModel.cs)**: Data models for dialogue nodes and branching choices.
-3. **[DialogueDatabase.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/DialogueDatabase.cs)**: Cache database using Dictionary for $O(1)$ fast node retrieval.
-4. **[DialogueManager.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/DialogueManager.cs)**: Singleton manager controlling progress loops (using UniTask) and condition evaluations.
-5. **[DialogueUI.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/DialogueUI.cs)**: Typewriter effect (ignores Rich Text HTML tags), choice button spawning, and New Input System (Space/Z/Enter keys).
-6. **[InteractionTrigger.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/InteractionTrigger.cs)**: Scene object interactable component. Supports conditional dialogue overrides.
-7. **[AreaNarrativeTrigger.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/AreaNarrativeTrigger.cs)**: Zone-based (2D/3D Collider Trigger) narration activation.
-8. **[DialogueEventDispatcher.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/DialogueEventDispatcher.cs)**: Observer-dispatcher to trigger visual/audio gameplay actions (camera shake, jump scare).
-9. **[DialogueObfuscation.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/DialogueObfuscation.cs)**: Symmetric XOR encryption helper to prevent story leak datamining.
-10. **Editor Tooling** (in [Editor/](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/Editor/) directory):
-    * **[DialogueContainerSO.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/DialogueContainerSO.cs)**: ScriptableObject holding graph nodes and positions.
-    * **[DialogueGraphView.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/Editor/DialogueGraphView.cs)**: Canvas implementation for visual graph editing.
-    * **[DialogueGraphEditorWindow.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/Editor/DialogueGraphEditorWindow.cs)**: Custom window UI for node editor.
-    * **[DialogueBinaryExporter.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/Editor/DialogueBinaryExporter.cs)**: Compiles all SOs in the project into an obfuscated binary file (`dialogues.bin`).
-    * **[DialogueSampleGenerator.cs](file:///C:/Users/kimdn/My%20Project/Assets/Scripts/DialogSystem/Editor/DialogueSampleGenerator.cs)**: Automatically wires a mansion horror scenario SampleGraph asset for testing.
+### 씬 재생성 방법
+Unity 재컴파일 완료 후 → **Unity 메뉴바 → `Level Editor → Setup Scene`**
+
+### 구성 스크립트 (Assets/Scripts/LevelEditor/)
+
+| 스크립트 | 역할 |
+|---------|------|
+| `LevelEditorManager.cs` | Singleton. Grid/Tilemap 관리, 입력 처리, Spotlight 배치/삭제 |
+| `LevelEditorUI.cs` | 타일·오브젝트 패널 분리, 카테고리 탭, 도구 버튼, Spotlight 설정 패널 |
+| `LevelItemData.cs` | ScriptableObject. `category` 필드로 탭 분류 |
+| `TileSpotlightMarker.cs` | Point Light 마커. 셀 단위 배치. color/intensity/range 설정 |
+| `LevelSaveLoad.cs` | 레벨 루트를 타임스탬프 붙은 Prefab으로 저장 |
+| `GridLineRenderer.cs` | GL 즉시모드로 그리드 시각화 |
+
+### 씬 UI 레이아웃
+```
+┌─────────────────────────────────────────────────┐
+│ [TopBar] ✏Draw ⌫Erase ☀Light │ 힌트 │ 지우기 💾저장 │
+├──────────┬──────────────────────────┬───────────┤
+│ TILES    │                          │ OBJECTS   │
+│[카테고리탭]│     게임뷰 (페인팅 영역)   │[카테고리탭]│
+│ 96×96 그리드 팔레트               │ 96×96 그리드 팔레트 │
+│         │          ┌─────────────┐ │           │
+│         │          │ ☀Spotlight  │ │           │
+│         │          │ 색상 프리셋   │ │           │
+│         │          │ 강도 슬라이더 │ │           │
+│         │          │ 범위 슬라이더 │ │           │
+└──────────┴──────────┴─────────────┴─┴───────────┘
+```
+
+### Canvas 설정
+- **RenderMode**: `Screen Space Camera` (mainCam 사용, planeDistance=1)
+- **CanvasScaler**: ScaleWithScreenSize, 기준해상도 1920×1080, match=0.5
+
+### 도구 단축키
+| 키 | 기능 |
+|----|------|
+| Q | 그리기 모드 |
+| E | 지우기 모드 (모든 레이어 일괄 삭제) |
+| R | 스팟라이트 배치 모드 |
+| WASD | 카메라 이동 |
+| 스크롤 | 카메라 줌 |
+| 우클릭 드래그 | 지우기 (모드 무관) |
+
+### LevelRoot 계층 구조
+```
+Grid
+└── LevelRoot
+    ├── Floor_Tilemap      (sortOrder: 0)
+    ├── Wall_Tilemap       (sortOrder: 1)
+    ├── Overlay_Tilemap    (sortOrder: 2)
+    ├── Object_Layer       (GameObject 배치용)
+    └── Spotlight_Layer    (TileSpotlightMarker 프리팹 인스턴스)
+```
+
+### Spotlight 시스템
+- **프리팹**: `Assets/Prefabs/SpotlightMarker.prefab` (Light + TileSpotlightMarker)
+- R 모드에서 셀 클릭 → 해당 셀 정중앙 (Z=-1)에 Point Light 배치
+- 우클릭으로 제거
+- 설정 패널: 색상 프리셋 6가지 + Intensity(0.1~5) + Range(0.5~10) 슬라이더
+- `SetSpotlightSettings(Color, float, float)`로 LevelEditorManager에 전달
+
+### UI 차단 방식
+- 기존: 하드코딩 픽셀 좌표 비교 → **현재: EventSystem.RaycastAll()** 사용
+- 사이드바/탑바 Image 컴포넌트가 레이캐스트를 막아 씬 클릭 차단
+
+### LevelItemData 카테고리 예시
+- Tile: `"바닥"`, `"벽"`, `"특수"`
+- GameObject: `"소품"`, `"적"`, `"조명"`
+- 기본값: `"기본"`
+
+### 라이팅 관련 주의사항
+- 현재 `TileSpotlightMarker`는 Unity 3D `Light` (Point) 사용
+- **URP 사용 시**: `Light2D (Point)`로 교체 권장 (Light2D 임포트 후 교체)
+- **Global Light**: 씬 분위기 연출용. 에디터에서 건드리지 말고 Lighting Settings에서 관리
+  - 호러 장르면 Global Light를 0~0.1 수준으로 낮추고 SpotLight로만 조명 연출
+  - 레벨에디터에 슬라이더 추가하는 것보다 별도 LightingManager 스크립트로 관리 추천
 
 ---
 
-## ⚙️ Development Workflows & State
-- **Editor Execution**: The `DialogueManager` loads and converts nodes directly from the assigned `editorDialogueGraph` ScriptableObject to ensure instant testing without compiling to binary.
-- **Build Execution**: The `DialogueManager` reads from `binaryDialogueAsset` (`dialogues.bin`), decrypts the contents in memory, and caches nodes directly to Dictionary. (No raw JSON file writing is used).
-- **Controls**: Advance input uses `Space`, `Z`, and `Enter`. Mouse click is disabled to maintain Tsukur genre feel.
-- **Input Double Skip Protection**: An `isInputCooldown` flag blocks input for 1 frame upon node transitions to prevent a single spacebar press from skipping multiple dialogues.
-- **UI Design**: The backing `choicePanel` has been removed; choice containers are toggled directly via `choiceButtonContainer.gameObject`.
-- **Status**: The compiler tests show **zero errors**.
+## 🧩 Match-3 퍼즐 시스템 (Play Scene)
+
+### 핵심 스크립트 (Assets/Scripts/Puzzle/)
+| 스크립트 | 역할 |
+|---------|------|
+| `PuzzleController.cs` | 메인 컨트롤러. GridSystem(6×8), UniTask 비동기 애니메이션 큐 |
+| `GridSystem.cs` | 제네릭 2D 그리드. `IGridNode` 기반, `OnNodeChanged` 이벤트 |
+| `PuzzleTile.cs` | 타일 (Red/Blue/Green/Yellow/Purple). isMovable, isMatchable |
+| `IceTile.cs` | 장애물 타일. HP 2. 인접 매치 시 데미지, 알파/색상 피드백 |
+| `Match3Strategy.cs` | `IMatchStrategy<PuzzleTile>` 구현. 3+ 연속 매치 탐지 |
+| `PuzzleScopes.cs` | `BusyScope`(입력 가드), `SwapTransaction`(자동 롤백 스왑) |
+
+---
+
+## 💬 다이얼로그 시스템 (Assets/Scripts/DialogSystem/)
+
+1. `IInteractable.cs` — 다형성 상호작용 인터페이스 (NPC, 조사 스팟, 서랍)
+2. `DialogueModel.cs` — 노드/분기 선택지 데이터 모델
+3. `DialogueDatabase.cs` — Dictionary O(1) 노드 캐시
+4. `DialogueManager.cs` — Singleton, UniTask 진행 루프, 조건 평가
+5. `DialogueUI.cs` — 타자기 효과(Rich Text 태그 무시), 선택지 버튼 스폰, Space/Z/Enter
+6. `InteractionTrigger.cs` — 씬 오브젝트 상호작용, 조건부 대화 오버라이드
+7. `AreaNarrativeTrigger.cs` — 구역 진입(2D/3D Collider Trigger) 나레이션
+8. `DialogueEventDispatcher.cs` — Observer 패턴. 카메라 쉐이크, 점프스케어 트리거
+9. `DialogueObfuscation.cs` — XOR 암호화로 스토리 유출 방지
+10. **Editor 툴링** (Editor/ 폴더):
+    - `DialogueContainerSO.cs` — 그래프 노드 ScriptableObject
+    - `DialogueGraphView.cs` — 비주얼 그래프 편집 캔버스
+    - `DialogueGraphEditorWindow.cs` — 커스텀 에디터 윈도우
+    - `DialogueBinaryExporter.cs` — 난독화 바이너리(`dialogues.bin`) 컴파일
+    - `DialogueSampleGenerator.cs` — 테스트용 맨션 호러 시나리오 샘플 자동 생성
+
+### 실행 모드
+- **에디터**: `editorDialogueGraph` ScriptableObject에서 직접 로드
+- **빌드**: `dialogues.bin` 복호화 후 Dictionary 캐시 (JSON 파일 미사용)
+
+---
+
+## ⚙️ 공통 유틸리티 (Assets/Scripts/0.Common/)
+
+| 스크립트 | 역할 |
+|---------|------|
+| `SingletonMonoBehaviour.cs` | 제네릭 스레드세이프 Singleton, DontDestroyOnLoad |
+| `PoolManager.cs` | PoolSO 기반 오브젝트 풀 (Get/Return) |
+| `PoolContainer.cs` | 동일 프리팹 풀 큐 관리 |
+| `SpriteManager.cs` | SpriteAtlasSO 기반 스프라이트 이름 O(1) 조회 |
+| `CameraShake.cs` | 코루틴 쉐이크. ImpactShake(), DamageShake() |
+
+---
+
+## 🔧 개발 규칙
+- 입력: **Unity New Input System** (`UnityEngine.InputSystem`) 사용. 구형 Input.GetKey 사용 금지
+- 비동기: **UniTask** 사용. async/await 패턴
+- 싱글턴: `SingletonMonoBehaviour<T>` 상속
+- 에디터 전용 코드: `#if UNITY_EDITOR` 가드 또는 `Assets/Editor/` 폴더
+- 저장 경로: 레벨 프리팹 → `Assets/Prefabs/Levels/` (타임스탬프 파일명)

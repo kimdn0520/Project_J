@@ -11,6 +11,10 @@ public class LevelItemData : ScriptableObject
     public Sprite thumbnail;
     public ItemType itemType;
 
+    [Header("Grouping")]
+    [Tooltip("팔레트 탭 분류용 카테고리 (예: 바닥, 벽, 특수 / 소품, 적, 조명)")]
+    public string category = "기본";
+
     [Header("Placement Target")]
     [Tooltip("배치될 대상 타일맵 또는 부모 오브젝트의 이름 (예: Floor_Tilemap, Object_Layer)")]
     public string targetLayerName;
