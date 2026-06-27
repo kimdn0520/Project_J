@@ -47,7 +47,7 @@ namespace MapSystem
         /// <summary>
         /// Initiates transition to target scene and teleports player to specific spawn point.
         /// </summary>
-        public async UniTaskVoid LoadSceneAsync(string targetScene, string targetSpawnId)
+        public async UniTask LoadSceneAsync(string targetScene, string targetSpawnId, Vector3? overridePosition = null, Quaternion? overrideRotation = null)
         {
             if (IsTransitioning)
             {
@@ -84,8 +84,8 @@ namespace MapSystem
                     SceneManager.SetActiveScene(loadedScene);
                 }
 
-                // 5. Teleport player to the target spawn point
-                TeleportPlayer(targetSpawnId);
+                // 5. Teleport player to the target spawn point or override position
+                TeleportPlayer(targetSpawnId, overridePosition, overrideRotation);
 
                 // 6. Fade In (Screen returns to normal)
                 if (fadeCanvasGroup != null)
@@ -110,8 +110,33 @@ namespace MapSystem
             return scene.isLoaded;
         }
 
-        private void TeleportPlayer(string spawnId)
+        private void TeleportPlayer(string spawnId, Vector3? overridePosition = null, Quaternion? overrideRotation = null)
         {
+            // Find the player object in the scene
+            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null)
+            {
+                Debug.LogWarning("[SceneTransitionManager] Player object with tag 'Player' not found in the scene.");
+                return;
+            }
+
+            if (overridePosition.HasValue)
+            {
+                player.transform.position = overridePosition.Value;
+                if (overrideRotation.HasValue)
+                {
+                    player.transform.rotation = overrideRotation.Value;
+                }
+
+                // If Rigidbody2D is present, sync physics state to prevent rollback
+                if (player.TryGetComponent<Rigidbody2D>(out var rb))
+                {
+                    rb.position = overridePosition.Value;
+                    rb.linearVelocity = Vector2.zero;
+                }
+                return;
+            }
+
             if (string.IsNullOrEmpty(spawnId)) return;
 
             // Find all SpawnPoint components in the newly loaded scene
@@ -133,24 +158,15 @@ namespace MapSystem
                 return;
             }
 
-            // Find the player object in the scene
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
-            if (player != null)
-            {
-                // Teleport player
-                player.transform.position = targetPoint.transform.position;
-                player.transform.rotation = targetPoint.transform.rotation;
+            // Teleport player
+            player.transform.position = targetPoint.transform.position;
+            player.transform.rotation = targetPoint.transform.rotation;
 
-                // If Rigidbody2D is present, sync physics state to prevent rollback
-                if (player.TryGetComponent<Rigidbody2D>(out var rb))
-                {
-                    rb.position = targetPoint.transform.position;
-                    rb.linearVelocity = Vector2.zero;
-                }
-            }
-            else
+            // If Rigidbody2D is present, sync physics state to prevent rollback
+            if (player.TryGetComponent<Rigidbody2D>(out var rb2d))
             {
-                Debug.LogWarning("[SceneTransitionManager] Player object with tag 'Player' not found in the scene.");
+                rb2d.position = targetPoint.transform.position;
+                rb2d.linearVelocity = Vector2.zero;
             }
         }
 
