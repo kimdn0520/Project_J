@@ -19,7 +19,8 @@ namespace MapSystem
 
         private void OnTriggerEnter2D(Collider2D other)
         {
-            if (other.CompareTag(playerTag))
+            bool isPlayer = other.CompareTag(playerTag) || (other.transform.parent != null && other.transform.parent.CompareTag(playerTag));
+            if (isPlayer)
             {
                 TriggerTransition();
             }
