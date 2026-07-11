@@ -87,6 +87,13 @@ namespace MapSystem
                 // 5. Teleport player to the target spawn point or override position
                 TeleportPlayer(targetSpawnId, overridePosition, overrideRotation);
 
+                // Snap camera instantly to prevent interpolation artifacts during transition
+                var cameraFollow = FindAnyObjectByType<Core.CameraFollow>();
+                if (cameraFollow != null)
+                {
+                    cameraFollow.SnapToTarget();
+                }
+
                 // 6. Fade In (Screen returns to normal)
                 if (fadeCanvasGroup != null)
                 {

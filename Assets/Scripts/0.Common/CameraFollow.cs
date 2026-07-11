@@ -79,5 +79,31 @@ namespace Core
         {
             useBounds = false;
         }
+
+        /// <summary>
+        /// Instantly snaps the camera to the target's position with offset.
+        /// </summary>
+        public void SnapToTarget()
+        {
+            if (target == null)
+            {
+                FindPlayerTarget();
+            }
+
+            if (target != null)
+            {
+                Vector3 targetPosition = target.position + offset;
+                
+                // Clamp values if map boundaries are defined
+                if (useBounds)
+                {
+                    float clampedX = Mathf.Clamp(targetPosition.x, minBounds.x, maxBounds.x);
+                    float clampedY = Mathf.Clamp(targetPosition.y, minBounds.y, maxBounds.y);
+                    targetPosition = new Vector3(clampedX, clampedY, targetPosition.z);
+                }
+
+                transform.position = targetPosition;
+            }
+        }
     }
 }
