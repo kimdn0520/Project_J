@@ -1,0 +1,164 @@
+{
+  "dialogues": [
+    {
+      "id": "exterior_intro_1",
+      "speaker": "이은주",
+      "text": "……하아, 여기가 구인 공고에 적힌 그 호텔이 맞나?",
+      "nextNodeId": "exterior_intro_2",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "exterior_intro_2",
+      "speaker": "",
+      "text": "(은주, 낡은 호텔 입구 간판을 바라본다)",
+      "nextNodeId": "exterior_intro_3",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "exterior_intro_3",
+      "speaker": "이은주",
+      "text": "생각했던 것보다 훨씬 어둡고 조용하네.\n산속이라 그런지 휴대폰 안테나도 겨우 한 칸이고...",
+      "nextNodeId": "exterior_intro_4",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "exterior_intro_4",
+      "speaker": "이은주",
+      "text": "……하지만 망설일 때가 아니잖아.",
+      "nextNodeId": "exterior_intro_5",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "exterior_intro_5",
+      "speaker": "이은주",
+      "text": "은호의 이번 달 투석비에, 쌓여있는 학자금 대출까지..\n시급이 일반 알바의 5배라면... 귀신이 나온다 해도 일해야 해.",
+      "nextNodeId": "exterior_intro_6",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "exterior_intro_6",
+      "speaker": "",
+      "text": "(바람 소리와 함께 호텔 정문 문소리가 끼익- 하고 작게 들린다)",
+      "nextNodeId": "exterior_intro_7",
+      "triggerEvent": "sfx_door_creak",
+      "choices": []
+    },
+    {
+      "id": "exterior_intro_7",
+      "speaker": "이은주",
+      "text": "어? 방금 문이 저절로 열린 건가……?",
+      "nextNodeId": "exterior_intro_8",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "exterior_intro_8",
+      "speaker": "이은주",
+      "text": "...들어가 보자. 정신 바짝 차리고.",
+      "nextNodeId": "",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_entry_1",
+      "speaker": "이은주",
+      "text": "어라...? 아무도 안 계시나? 이상하리만치 조용하네...",
+      "nextNodeId": "lobby_entry_2",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_entry_2",
+      "speaker": "",
+      "text": "(은주, 텅 빈 프런트 카운터 쪽을 두리번거린다)",
+      "nextNodeId": "lobby_entry_3",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_entry_3",
+      "speaker": "이은주",
+      "text": "저 프론트 책상 위에 올려져 있는 건... 메모인가?",
+      "nextNodeId": "",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_memo_1",
+      "speaker": "이은주",
+      "text": "야간 업무지시서? ...그리고 옆에 메모도 같이 남겨져 있네.",
+      "nextNodeId": "lobby_memo_2",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_memo_2",
+      "speaker": "",
+      "text": "(은주가 지배인이 남긴 메모를 읽는다)",
+      "nextNodeId": "lobby_memo_3",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_memo_3",
+      "speaker": "지배인의 메모",
+      "text": "안녕하세요, 은주 씨. 지배인입니다.\n갑작스러운 급한 건으로 먼저 자리를 비우게 되어 미안합니다.",
+      "nextNodeId": "lobby_memo_4",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_memo_4",
+      "speaker": "지배인의 메모",
+      "text": "첫날부터 혼자 두게 되어 마음이 쓰이지만, 공고에 적힌 대로\n지시서에 적힌 야간 기본 정돈 업무만 깔끔하게 해주시면 됩니다.",
+      "nextNodeId": "lobby_memo_5",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_memo_5",
+      "speaker": "지배인의 메모",
+      "text": "업무가 끝나면 2층 204호 객실 정리까지 마치고 퇴근하시면 됩니다. 수고하세요.",
+      "nextNodeId": "lobby_memo_6",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_memo_6",
+      "speaker": "이은주",
+      "text": "어휴... 첫날부터 지배인님이 자리를 비우다니.",
+      "nextNodeId": "lobby_memo_7",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_memo_7",
+      "speaker": "이은주",
+      "text": "어쩌겠어. 구인 공고대로 시키는 일은 깔끔하게 끝내야지.\n어디 보자, 오늘 해야 할 업무가...",
+      "nextNodeId": "lobby_system_tutorial_1",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_system_tutorial_1",
+      "speaker": "시스템",
+      "text": "<기본 조작법 안내>\n- 이동: [ 방향키 ]\n- 조사 / 상호작용: [ Space ]\n- 인벤토리 및 업무지시서 확인: [ I ] 키\n- 시스템 설정 및 저장: [esc] 키",
+      "nextNodeId": "lobby_system_tutorial_2",
+      "triggerEvent": "",
+      "choices": []
+    },
+    {
+      "id": "lobby_system_tutorial_2",
+      "speaker": "시스템",
+      "text": "획득한 아이템과 수행해야 할 지시서 목표는\n언제든지 [ I ] 키를 눌러 인벤토리 창에서 확인할 수 있습니다.",
+      "nextNodeId": "",
+      "triggerEvent": "",
+      "choices": []
+    }
+  ]
+}

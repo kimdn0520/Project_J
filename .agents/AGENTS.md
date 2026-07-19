@@ -29,7 +29,24 @@ Match-3 퍼즐 + 씬 기반 맵 시스템 + 다이얼로그 시스템으로 구�
   - 우측 세로로 아담하게 정렬되는 `ChoiceContainer`와 좌측 65% 너비의 `DialogueText` UI Canvas 자동 구축 및 바인딩 완료.
   - `EventSystem` (InputSystemUIInputModule 탑재) 자동 생성 완료.
   - `PersistentSceneBootstrapper.cs`를 이용한 첫 맵(`Map_01_Start`) 자동 기동, 런타임 JSON 다이얼로그 데이터 동적 주입, 열쇠 획득/잠금 문 열기 이벤트 델리게이트 연동 완료.
-  - 책상(`Desk`) 및 잠긴 문(`LockedDoor`)에 충돌용 물리 콜라이더(`isTrigger = false`)와 상호작용 트리거 설정 완료.
+- [x] **시나리오 스토리 플롯 & Chapter 1 (1층 로비) 다이얼로그 플로우 기획** (완료)
+  - **주인공**: 이은주 (동생 병원비/학자금 대출 때문에 고액 야간 관리인 알바 지원).
+  - **배경**: 산속 외딴 곳에 위치한 '라포르 호텔'.
+  - **오프닝 (Map_00_Exterior)**: 독백 다이얼로그 및 정문 진입 조건 (`intro_dialogue_done`) 확정.
+  - **Chapter 1 (Map_01_Lobby)**:
+    1. 로비 진입 시 자동 독백 (`"어라..? 조용하네 / 저 메모는 뭐지?"`)
+    2. 프런트 메모 조사 시 지배인 야간 업무 지시서 다이얼로그 출력.
+    3. 조작 안내 튜토리얼 나레이션 (`[I]` 키 인벤토리 안내 등).
+    4. 1층 필수 야간 업무(로비 조명 켜기, 카운터 서랍에서 2층 열쇠 획득) 완료 후 2층 계단 이동 조건 해제 플로우 확정.
+- [x] **프롤로그 (Map_00_HotelExterior) 및 Chapter 1 (Map_01_Lobby) 씬, 다이얼로그, 플로우 구축** (완료)
+  - `Player.prefab` 프리팹화 (`Assets/Prefabs/Player.prefab`) 및 Persistent 씬 연동 완료.
+  - `chapter1_dialogues.json` 프롤로그 독백, 로비 자동독백, 카운터 메모 조사 독백 및 조작법 시스템 안내 나레이션 작성 완료.
+  - `Map_00_HotelExterior.unity`, `Map_01_Lobby.unity` 씬 구축 및 빌드 세팅 등록 완료.
+  - 독백 종료 후 자동으로 호텔 입구 문으로 진입하여 로비 씬으로 이동하는 트리거/이벤트 연동 완료.
+- [x] **메인 타이틀 씬 (Title.unity) 구축 및 시작 플로우 연동** (완료)
+  - 호러 분위기의 "라포르 호텔" 메인 타이틀 UI 및 "게임 시작" 단일 버튼 구축 완료.
+  - "게임 시작" 클릭 시 `Persistent` 씬 자동 Additive 로드 + `SaveManager` 초기화 + 첫 프롤로그 씬 (`Map_00_HotelExterior`) 자연스러운 암전 전환 연동 완료.
+- [ ] **Chapter 1 필수 야간 업무(조명 켜기, 카운터 서랍에서 2층 열쇠 획득) 상호작용 및 퍼즐 연동** (다음 진행 예정)
 
 ---
 

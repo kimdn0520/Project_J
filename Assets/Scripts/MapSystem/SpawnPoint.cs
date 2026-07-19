@@ -15,6 +15,11 @@ namespace MapSystem
         /// </summary>
         public string SpawnId => spawnId;
 
+        public void SetSpawnId(string id)
+        {
+            spawnId = id;
+        }
+
         private void OnDrawGizmos()
         {
             // Draw a green wire sphere at the spawn point position in the Editor

@@ -25,14 +25,19 @@ namespace MapSystem
         {
             base.Awake();
 
-            // Auto-create fade UI if it is not manually assigned
             if (fadeCanvasGroup == null)
             {
                 CreateFadeCanvas();
             }
+            else
+            {
+                Canvas canvas = fadeCanvasGroup.GetComponentInParent<Canvas>();
+                if (canvas != null)
+                {
+                    canvas.sortingOrder = 32767;
+                }
+            }
 
-            // Find currently loaded map scene (other than the Persistent scene itself)
-            // This is useful when playing from a map scene directly in the Unity Editor.
             for (int i = 0; i < SceneManager.sceneCount; i++)
             {
                 Scene scene = SceneManager.GetSceneAt(i);
@@ -44,9 +49,73 @@ namespace MapSystem
             }
         }
 
-        /// <summary>
-        /// Initiates transition to target scene and teleports player to specific spawn point.
-        /// </summary>
+        public async UniTask StartGameFromBlackSceneAsync(string targetScene, string targetSpawnId)
+        {
+            if (IsTransitioning) return;
+            IsTransitioning = true;
+            NextSpawnId = targetSpawnId;
+
+            try
+            {
+                if (fadeCanvasGroup != null)
+                {
+                    fadeCanvasGroup.alpha = 1f;
+                    fadeCanvasGroup.blocksRaycasts = true;
+                    fadeCanvasGroup.transform.SetAsLastSibling();
+                }
+
+                int sceneCount = SceneManager.sceneCount;
+                for (int i = sceneCount - 1; i >= 0; i--)
+                {
+                    Scene scene = SceneManager.GetSceneAt(i);
+                    if (scene.isLoaded && scene.name != "Persistent" && scene.name != targetScene)
+                    {
+                        Debug.Log($"[SceneTransitionManager] Unloading scene under black screen: {scene.name}");
+                        await SceneManager.UnloadSceneAsync(scene).ToUniTask();
+                    }
+                }
+
+                if (!IsSceneLoaded(targetScene))
+                {
+                    Debug.Log($"[SceneTransitionManager] Loading new map scene additively: {targetScene}");
+                    await SceneManager.LoadSceneAsync(targetScene, LoadSceneMode.Additive).ToUniTask();
+                }
+                
+                currentMapSceneName = targetScene;
+
+                Scene loadedScene = SceneManager.GetSceneByName(targetScene);
+                if (loadedScene.IsValid())
+                {
+                    SceneManager.SetActiveScene(loadedScene);
+                }
+
+                TeleportPlayer(targetSpawnId);
+
+                var cameraFollow = FindAnyObjectByType<Core.CameraFollow>();
+                if (cameraFollow != null)
+                {
+                    cameraFollow.SnapToTarget();
+                }
+
+                await UniTask.Yield();
+                await UniTask.Yield();
+
+                if (fadeCanvasGroup != null)
+                {
+                    await fadeCanvasGroup.DOFade(0f, fadeDuration).SetEase(Ease.InQuad).ToUniTask();
+                    fadeCanvasGroup.blocksRaycasts = false;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[SceneTransitionManager] Error in StartGameFromBlackSceneAsync: {ex}");
+            }
+            finally
+            {
+                IsTransitioning = false;
+            }
+        }
+
         public async UniTask LoadSceneAsync(string targetScene, string targetSpawnId, Vector3? overridePosition = null, Quaternion? overrideRotation = null)
         {
             if (IsTransitioning)
@@ -60,44 +129,52 @@ namespace MapSystem
 
             try
             {
-                // 1. Fade Out (Screen turns black)
                 if (fadeCanvasGroup != null)
                 {
-                    fadeCanvasGroup.blocksRaycasts = true; // Block UI/Input during transition
-                    await fadeCanvasGroup.DOFade(1f, fadeDuration).ToUniTask();
+                    fadeCanvasGroup.blocksRaycasts = true;
+                    fadeCanvasGroup.transform.SetAsLastSibling();
+                    await fadeCanvasGroup.DOFade(1f, fadeDuration).SetEase(Ease.OutQuad).ToUniTask();
                 }
 
-                // 2. Unload current map scene if it exists
-                if (!string.IsNullOrEmpty(currentMapSceneName) && IsSceneLoaded(currentMapSceneName))
+                int sceneCount = SceneManager.sceneCount;
+                for (int i = sceneCount - 1; i >= 0; i--)
                 {
-                    await SceneManager.UnloadSceneAsync(currentMapSceneName).ToUniTask();
+                    Scene scene = SceneManager.GetSceneAt(i);
+                    if (scene.isLoaded && scene.name != "Persistent" && scene.name != targetScene)
+                    {
+                        Debug.Log($"[SceneTransitionManager] Unloading scene under black screen: {scene.name}");
+                        await SceneManager.UnloadSceneAsync(scene).ToUniTask();
+                    }
                 }
 
-                // 3. Load new map scene additively
-                await SceneManager.LoadSceneAsync(targetScene, LoadSceneMode.Additive).ToUniTask();
+                if (!IsSceneLoaded(targetScene))
+                {
+                    Debug.Log($"[SceneTransitionManager] Loading new map scene additively: {targetScene}");
+                    await SceneManager.LoadSceneAsync(targetScene, LoadSceneMode.Additive).ToUniTask();
+                }
+                
                 currentMapSceneName = targetScene;
 
-                // 4. Set newly loaded scene as Active Scene so lighting and physics behave properly
                 Scene loadedScene = SceneManager.GetSceneByName(targetScene);
                 if (loadedScene.IsValid())
                 {
                     SceneManager.SetActiveScene(loadedScene);
                 }
 
-                // 5. Teleport player to the target spawn point or override position
                 TeleportPlayer(targetSpawnId, overridePosition, overrideRotation);
 
-                // Snap camera instantly to prevent interpolation artifacts during transition
                 var cameraFollow = FindAnyObjectByType<Core.CameraFollow>();
                 if (cameraFollow != null)
                 {
                     cameraFollow.SnapToTarget();
                 }
 
-                // 6. Fade In (Screen returns to normal)
+                await UniTask.Yield();
+                await UniTask.Yield();
+
                 if (fadeCanvasGroup != null)
                 {
-                    await fadeCanvasGroup.DOFade(0f, fadeDuration).ToUniTask();
+                    await fadeCanvasGroup.DOFade(0f, fadeDuration).SetEase(Ease.InQuad).ToUniTask();
                     fadeCanvasGroup.blocksRaycasts = false;
                 }
             }
@@ -119,23 +196,37 @@ namespace MapSystem
 
         private void TeleportPlayer(string spawnId, Vector3? overridePosition = null, Quaternion? overrideRotation = null)
         {
-            // Find the player object in the scene
             GameObject player = GameObject.FindGameObjectWithTag("Player");
+            if (player == null) player = GameObject.Find("Player");
+
             if (player == null)
             {
-                Debug.LogWarning("[SceneTransitionManager] Player object with tag 'Player' not found in the scene.");
+                Debug.LogWarning("[SceneTransitionManager] Player object not found in the scene.");
                 return;
+            }
+
+            // Kill any leftover DOTween animations
+            player.transform.DOKill();
+            
+            SpriteRenderer[] srs = player.GetComponentsInChildren<SpriteRenderer>();
+            foreach (var sr in srs)
+            {
+                sr.DOKill();
+                sr.color = Color.white; // Restore opacity
+                if (sr.sortingOrder < 10) sr.sortingOrder = 10;
+            }
+
+            var playerController = player.GetComponent<Player.PlayerController>();
+            if (playerController != null && playerController.IdleState != null)
+            {
+                playerController.TransitionToState(playerController.IdleState);
             }
 
             if (overridePosition.HasValue)
             {
                 player.transform.position = overridePosition.Value;
-                if (overrideRotation.HasValue)
-                {
-                    player.transform.rotation = overrideRotation.Value;
-                }
+                if (overrideRotation.HasValue) player.transform.rotation = overrideRotation.Value;
 
-                // If Rigidbody2D is present, sync physics state to prevent rollback
                 if (player.TryGetComponent<Rigidbody2D>(out var rb))
                 {
                     rb.position = overridePosition.Value;
@@ -146,34 +237,82 @@ namespace MapSystem
 
             if (string.IsNullOrEmpty(spawnId)) return;
 
-            // Find all SpawnPoint components in the newly loaded scene
-            SpawnPoint[] spawnPoints = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None);
-            SpawnPoint targetPoint = null;
+            // Flexible SpawnPoint Search Algorithm
+            Transform targetTransform = null;
 
+            // 1. Search by SpawnPoint component SpawnId
+            SpawnPoint[] spawnPoints = FindObjectsByType<SpawnPoint>(FindObjectsSortMode.None);
             foreach (var point in spawnPoints)
             {
-                if (point.SpawnId == spawnId)
+                if (point != null && !string.IsNullOrEmpty(point.SpawnId) && point.SpawnId.Equals(spawnId, StringComparison.OrdinalIgnoreCase))
                 {
-                    targetPoint = point;
+                    targetTransform = point.transform;
                     break;
                 }
             }
 
-            if (targetPoint == null)
+            // 2. Search by GameObject name
+            if (targetTransform == null)
             {
-                Debug.LogError($"[SceneTransitionManager] SpawnPoint with ID '{spawnId}' not found in the scene.");
-                return;
+                foreach (var point in spawnPoints)
+                {
+                    if (point != null && point.gameObject.name.Equals(spawnId, StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetTransform = point.transform;
+                        break;
+                    }
+                }
             }
 
-            // Teleport player
-            player.transform.position = targetPoint.transform.position;
-            player.transform.rotation = targetPoint.transform.rotation;
+            // 3. Search by loose name match
+            if (targetTransform == null)
+            {
+                string cleanTargetId = spawnId.Replace("SpawnPoint_", "").Replace("Spawn_", "");
+                foreach (var point in spawnPoints)
+                {
+                    if (point != null)
+                    {
+                        string cleanPointId = (point.SpawnId ?? point.gameObject.name).Replace("SpawnPoint_", "").Replace("Spawn_", "");
+                        if (cleanPointId.Equals(cleanTargetId, StringComparison.OrdinalIgnoreCase))
+                        {
+                            targetTransform = point.transform;
+                            break;
+                        }
+                    }
+                }
 
-            // If Rigidbody2D is present, sync physics state to prevent rollback
+                if (targetTransform == null)
+                {
+                    GameObject rawSpawnObj = GameObject.Find(spawnId);
+                    if (rawSpawnObj != null) targetTransform = rawSpawnObj.transform;
+                }
+            }
+
+            if (targetTransform == null)
+            {
+                Debug.LogWarning($"[SceneTransitionManager] SpawnPoint '{spawnId}' not found. Defaulting player to (0, -2, 0).");
+                player.transform.position = new Vector3(0, -2f, 0);
+            }
+            else
+            {
+                player.transform.position = targetTransform.position;
+                player.transform.rotation = targetTransform.rotation;
+                Debug.Log($"[SceneTransitionManager] Teleported player to {targetTransform.gameObject.name} at {targetTransform.position}");
+            }
+
             if (player.TryGetComponent<Rigidbody2D>(out var rb2d))
             {
-                rb2d.position = targetPoint.transform.position;
+                rb2d.position = player.transform.position;
                 rb2d.linearVelocity = Vector2.zero;
+            }
+
+            // Set player facing UP by default if entering from exterior
+            if (spawnId.Contains("Exterior") || spawnId.Contains("Exterior", StringComparison.OrdinalIgnoreCase))
+            {
+                if (playerController != null)
+                {
+                    playerController.SetFacingDirection(Vector2.up);
+                }
             }
         }
 
@@ -184,7 +323,7 @@ namespace MapSystem
 
             Canvas canvas = canvasObj.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
-            canvas.sortingOrder = 999;
+            canvas.sortingOrder = 32767;
 
             canvasObj.AddComponent<UnityEngine.UI.CanvasScaler>();
             canvasObj.AddComponent<UnityEngine.UI.GraphicRaycaster>();

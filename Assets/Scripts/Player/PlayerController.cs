@@ -126,6 +126,32 @@ namespace Player
             return moveAction.ReadValue<Vector2>();
         }
 
+        public void SetFacingDirection(Vector2 direction)
+        {
+            if (direction.sqrMagnitude > 0.01f)
+            {
+                lastDirection = direction.normalized;
+            }
+
+            if (animator == null) animator = GetComponentInChildren<Animator>();
+            if (spriteRenderer == null) spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+            if (animator != null)
+            {
+                animator.SetFloat(moveXParam, 0f);
+                animator.SetFloat(moveYParam, 0f);
+                animator.SetFloat(lastMoveXParam, lastDirection.x);
+                animator.SetFloat(lastMoveYParam, lastDirection.y);
+                animator.SetBool(isMovingParam, false);
+            }
+
+            if (spriteRenderer != null)
+            {
+                if (lastDirection.x < -0.01f) spriteRenderer.flipX = false;
+                else if (lastDirection.x > 0.01f) spriteRenderer.flipX = true;
+            }
+        }
+
         public void UpdateAnimator(Vector2 currentMove)
         {
             bool isMoving = currentMove.sqrMagnitude > 0.01f;

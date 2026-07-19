@@ -33,6 +33,11 @@ namespace DialogSystem
         [SerializeField] private bool disableAfterInteract = false;
         private bool wasInteracted = false;
 
+        public void SetDefaultDialogueNodeId(string nodeId)
+        {
+            defaultDialogueNodeId = nodeId;
+        }
+
         public void Interact()
         {
             if (disableAfterInteract && wasInteracted) return;

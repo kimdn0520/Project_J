@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using SaveSystem;
 using DialogSystem;
 using MapSystem;
@@ -8,12 +9,61 @@ namespace Core
 {
     public class PersistentSceneBootstrapper : MonoBehaviour
     {
-        [SerializeField] private string startSceneName = "Map_01_Start";
-        [SerializeField] private string startSpawnId = "start_point";
+        [Header("Bootstrapper Config")]
+        [SerializeField] private string titleSceneName = "Title";
+        [SerializeField] private string startSceneName = "Map_00_HotelExterior";
+        [SerializeField] private string startSpawnId = "Spawn_Default";
+
+        public void SetStartScene(string sceneName, string spawnId)
+        {
+            startSceneName = sceneName;
+            startSpawnId = spawnId;
+        }
+
+        private void Awake()
+        {
+            InitializeServices();
+        }
 
         private void Start()
         {
-            // 1. Hook up DialogueManager delegates
+            BootstrapInitialScene().Forget();
+        }
+
+        private async UniTaskVoid BootstrapInitialScene()
+        {
+            await UniTask.Yield(); // Wait one frame for singletons to initialize
+
+            // Check if any map or title scene is already loaded alongside Persistent
+            bool hasOtherScene = false;
+            for (int i = 0; i < SceneManager.sceneCount; i++)
+            {
+                Scene scene = SceneManager.GetSceneAt(i);
+                if (scene.name != gameObject.scene.name && scene.name != "Persistent")
+                {
+                    hasOtherScene = true;
+                    break;
+                }
+            }
+
+            // If no other scene is loaded (e.g. launching Persistent scene directly), load Title scene additively
+            if (!hasOtherScene)
+            {
+                Debug.Log($"[Bootstrapper] Persistent initialized. Loading initial Title scene: {titleSceneName}");
+                if (Application.CanStreamedLevelBeLoaded(titleSceneName))
+                {
+                    SceneManager.LoadSceneAsync(titleSceneName, LoadSceneMode.Additive);
+                }
+                else
+                {
+                    Debug.LogWarning($"[Bootstrapper] Title scene '{titleSceneName}' not found in build settings.");
+                }
+            }
+        }
+
+        private void InitializeServices()
+        {
+            // Hook up DialogueManager delegates
             if (DialogueManager.Instance != null)
             {
                 DialogueManager.Instance.OnCheckItem = (itemId) => {
@@ -36,10 +86,17 @@ namespace Core
                     }
                 };
 
-                // Load local test dialogues JSON
-                string testDialoguesJson = GetTestDialogueJson();
-                DialogueManager.Instance.LoadDialogues(testDialoguesJson);
-                Debug.Log("[Bootstrapper] Local test dialogues JSON loaded.");
+                // Load Chapter 1 Dialogues JSON from Resources
+                TextAsset chapter1Json = Resources.Load<TextAsset>("Dialogues/chapter1_dialogues");
+                if (chapter1Json != null)
+                {
+                    DialogueManager.Instance.LoadDialogues(chapter1Json.text);
+                    Debug.Log("[Bootstrapper] Chapter 1 dialogues JSON loaded successfully.");
+                }
+                else
+                {
+                    Debug.LogWarning("[Bootstrapper] Failed to load Dialogues/chapter1_dialogues JSON from Resources.");
+                }
 
                 // Register dialogue events
                 DialogueEventDispatcher.Register("get_key_event", OnGetKey);
@@ -48,17 +105,6 @@ namespace Core
             else
             {
                 Debug.LogError("[Bootstrapper] DialogueManager is missing.");
-            }
-
-            // 2. Start game loop
-            if (SaveManager.Instance != null)
-            {
-                Debug.Log($"[Bootstrapper] Bootstrapping game starting at {startSceneName}");
-                SaveManager.Instance.StartNewGame(startSceneName, startSpawnId);
-            }
-            else
-            {
-                Debug.LogError("[Bootstrapper] SaveManager instance not found. Cannot bootstrap game.");
             }
         }
 
@@ -80,134 +126,11 @@ namespace Core
 
         private void OnOpenDoor()
         {
-            Debug.Log("[Event Callback] Key used! Door is now open. Loading Map_01_Start...");
+            Debug.Log("[Event Callback] Key used! Door is now open.");
             if (PlayerStatus.Instance != null)
             {
                 PlayerStatus.Instance.RemoveItem("key_corridor");
             }
-            
-            // Warp player back to Map_01_Start
-            if (SceneTransitionManager.Instance != null)
-            {
-                SceneTransitionManager.Instance.LoadSceneAsync("Map_01_Start", "start_point").Forget();
-            }
-        }
-
-        private string GetTestDialogueJson()
-        {
-            return @"
-{
-  ""dialogues"": [
-    {
-      ""id"": ""desk_start"",
-      ""speaker"": ""조사"",
-      ""text"": ""오래된 책상이다. 서랍이 살짝 열려 있다..."",
-      ""nextNodeId"": """",
-      ""triggerEvent"": """",
-      ""choices"": [
-        {
-          ""text"": ""서랍 안을 들여다본다"",
-          ""nextNodeId"": ""desk_find_key"",
-          ""requiredFlag"": """",
-          ""requiredItem"": """",
-          ""setFlag"": """",
-          ""triggerEvent"": """"
-        },
-        {
-          ""text"": ""그대로 둔다"",
-          ""nextNodeId"": """",
-          ""requiredFlag"": """",
-          ""requiredItem"": """",
-          ""setFlag"": """",
-          ""triggerEvent"": """"
-        }
-      ]
-    },
-    {
-      ""id"": ""desk_find_key"",
-      ""speaker"": ""조사"",
-      ""text"": ""서랍 속에 낡은 열쇠가 들어있다! 열쇠를 챙기겠습니까?"",
-      ""nextNodeId"": """",
-      ""triggerEvent"": """",
-      ""choices"": [
-        {
-          ""text"": ""예 (열쇠를 챙긴다)"",
-          ""nextNodeId"": ""desk_get_key_success"",
-          ""requiredFlag"": """",
-          ""requiredItem"": """",
-          ""setFlag"": ""has_taken_key"",
-          ""triggerEvent"": ""get_key_event""
-        },
-        {
-          ""text"": ""아니오"",
-          ""nextNodeId"": """",
-          ""requiredFlag"": """",
-          ""requiredItem"": """",
-          ""setFlag"": """",
-          ""triggerEvent"": """"
-        }
-      ]
-    },
-    {
-      ""id"": ""desk_get_key_success"",
-      ""speaker"": ""알림"",
-      ""text"": ""복도 열쇠를 획득했다! 이제 어딘가 잠긴 문을 열 수 있을 것 같다."",
-      ""nextNodeId"": """",
-      ""triggerEvent"": """",
-      ""choices"": []
-    },
-    {
-      ""id"": ""desk_empty"",
-      ""speaker"": ""조사"",
-      ""text"": ""비어있는 책상이다. 서랍 안에는 아무것도 없다."",
-      ""nextNodeId"": """",
-      ""triggerEvent"": """",
-      ""choices"": []
-    },
-    {
-      ""id"": ""door_no_key"",
-      ""speaker"": ""조사"",
-      ""text"": ""문이 굳게 닫혀 있다. 단단한 복도 열쇠가 있어야 열릴 것 같다."",
-      ""nextNodeId"": """",
-      ""triggerEvent"": """",
-      ""choices"": []
-    },
-    {
-      ""id"": ""door_has_key"",
-      ""speaker"": ""조사"",
-      ""text"": ""잠긴 문이다. 복도 열쇠를 사용하여 문을 열겠습니까?"",
-      ""nextNodeId"": """",
-      ""triggerEvent"": """",
-      ""choices"": [
-        {
-          ""text"": ""예 (열쇠를 사용한다)"",
-          ""nextNodeId"": ""door_open_success"",
-          ""requiredFlag"": """",
-          ""requiredItem"": ""key_corridor"",
-          ""setFlag"": ""door_is_open"",
-          ""triggerEvent"": ""open_door_event""
-        },
-        {
-          ""text"": ""아니오"",
-          ""nextNodeId"": """",
-          ""requiredFlag"": """",
-          ""requiredItem"": """",
-          ""setFlag"": """",
-          ""triggerEvent"": """"
-        }
-      ]
-    },
-    {
-      ""id"": ""door_open_success"",
-      ""speaker"": ""알림"",
-      ""text"": ""철컥... 열쇠가 맞물려 돌아가며 문이 활짝 열렸다!"",
-      ""nextNodeId"": """",
-      ""triggerEvent"": """",
-      ""choices"": []
-    }
-  ]
-}
-";
         }
     }
 }

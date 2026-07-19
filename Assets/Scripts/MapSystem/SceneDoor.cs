@@ -17,6 +17,12 @@ namespace MapSystem
         [Header("Trigger Configuration")]
         [SerializeField] private string playerTag = "Player";
 
+        public void SetTarget(string sceneName, string spawnId)
+        {
+            targetScene = sceneName;
+            targetSpawnId = spawnId;
+        }
+
         private void OnTriggerEnter2D(Collider2D other)
         {
             bool isPlayer = other.CompareTag(playerTag) || (other.transform.parent != null && other.transform.parent.CompareTag(playerTag));
