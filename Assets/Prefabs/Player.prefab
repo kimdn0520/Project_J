@@ -431,3 +431,5 @@ MonoBehaviour:
   baseOrder: 5000
   yOffset: 0
   isStatic: 0
+  followParentYSort: 0
+  orderOffsetFromParent: 1
