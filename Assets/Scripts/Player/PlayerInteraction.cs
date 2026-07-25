@@ -8,10 +8,14 @@ namespace Player
     [RequireComponent(typeof(PlayerInput))]
     public class PlayerInteraction : MonoBehaviour
     {
-        [Header("Interaction Settings")]
-        [SerializeField] private float interactRange = 1.5f;
+        [Header("Trigger References")]
+        [SerializeField] private Transform triggerTransform;
+        [SerializeField] private PlayerTriggerZone triggerZone;
+        [SerializeField] private float triggerOffset = 0.45f;
+
+        [Header("Fallback Interaction Settings")]
         [SerializeField] private LayerMask interactableLayer = ~0; // Default to 'Everything'
-        [SerializeField] private Vector2 interactionBoxSize = new Vector2(1.0f, 1.0f);
+        [SerializeField] private Vector2 interactionBoxSize = new Vector2(0.6f, 0.6f);
         
         [Header("Cooldown Settings")]
         [SerializeField] private float dialogueEndCooldown = 0.3f; // Prevent immediate re-trigger after dialogue ends
@@ -30,6 +34,25 @@ namespace Player
             if (playerInput != null)
             {
                 interactAction = playerInput.actions.FindAction("Interact");
+            }
+
+            SetupTriggerReferences();
+        }
+
+        private void SetupTriggerReferences()
+        {
+            if (triggerTransform == null)
+            {
+                Transform t = transform.Find("Trigger");
+                if (t != null)
+                {
+                    triggerTransform = t;
+                }
+            }
+
+            if (triggerTransform != null && triggerZone == null)
+            {
+                triggerZone = triggerTransform.GetComponent<PlayerTriggerZone>();
             }
         }
 
@@ -57,6 +80,8 @@ namespace Player
 
         private void Update()
         {
+            UpdateTriggerPosition();
+
             // Block interaction if player cannot move (e.g. during active dialogue or transition)
             if (!playerController.CanMove)
                 return;
@@ -91,28 +116,58 @@ namespace Player
             }
         }
 
+        private void UpdateTriggerPosition()
+        {
+            if (triggerTransform == null || playerController == null)
+                return;
+
+            Vector2 dir = playerController.LastDirection;
+            if (dir == Vector2.zero)
+                dir = Vector2.down;
+
+            // Position the child Trigger transform slightly ahead in facing direction
+            triggerTransform.localPosition = dir * triggerOffset;
+        }
+
         private void PerformInteraction()
         {
-            Vector2 lookDir = playerController.LastDirection;
-            Vector2 checkPosition = (Vector2)transform.position + lookDir * (interactRange * 0.5f);
+            IInteractable target = null;
 
-            // Use OverlapBox to detect interactable objects in front of the player
-            Collider2D[] colliders = Physics2D.OverlapBoxAll(checkPosition, interactionBoxSize, 0f, interactableLayer);
-
-            foreach (var col in colliders)
+            // 1. Check TriggerZone first
+            if (triggerZone != null)
             {
-                IInteractable interactable = col.GetComponent<IInteractable>();
-                if (interactable == null)
-                {
-                    interactable = col.GetComponentInParent<IInteractable>();
-                }
+                target = triggerZone.GetTargetInteractable();
+            }
 
-                if (interactable != null)
+            // 2. Fallback check with OverlapBox if TriggerZone didn't detect an interactable
+            if (target == null)
+            {
+                Vector3 checkPos = triggerTransform != null ? triggerTransform.position : (transform.position + (Vector3)(playerController.LastDirection * triggerOffset));
+                Collider2D[] colliders = Physics2D.OverlapBoxAll(checkPos, interactionBoxSize, 0f, interactableLayer);
+
+                foreach (var col in colliders)
                 {
-                    Debug.Log($"[PlayerInteraction] Interacting with: {col.gameObject.name}");
-                    interactable.Interact();
-                    break; // Only interact with one target
+                    // Ignore self colliders
+                    if (col.transform.IsChildOf(transform)) continue;
+
+                    IInteractable interactable = col.GetComponent<IInteractable>();
+                    if (interactable == null)
+                    {
+                        interactable = col.GetComponentInParent<IInteractable>();
+                    }
+
+                    if (interactable != null)
+                    {
+                        target = interactable;
+                        break;
+                    }
                 }
+            }
+
+            if (target != null)
+            {
+                Debug.Log($"[PlayerInteraction] Interacting with target via trigger");
+                target.Interact();
             }
         }
 
@@ -121,11 +176,11 @@ namespace Player
             if (playerController == null)
                 playerController = GetComponent<PlayerController>();
 
-            Vector2 lookDir = playerController != null ? playerController.LastDirection : Vector2.down;
-            Vector2 checkPosition = (Vector2)transform.position + lookDir * (interactRange * 0.5f);
+            Vector2 dir = playerController != null ? playerController.LastDirection : Vector2.down;
+            Vector3 checkPos = triggerTransform != null ? triggerTransform.position : (transform.position + (Vector3)(dir * triggerOffset));
 
-            Gizmos.color = Color.green;
-            Gizmos.DrawWireCube(checkPosition, interactionBoxSize);
+            Gizmos.color = Color.cyan;
+            Gizmos.DrawWireCube(checkPos, interactionBoxSize);
         }
     }
 }

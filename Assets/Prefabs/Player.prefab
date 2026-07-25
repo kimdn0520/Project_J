@@ -10,6 +10,7 @@ GameObject:
   m_Component:
   - component: {fileID: 7950882307045738751}
   - component: {fileID: 2639724492449481096}
+  - component: {fileID: 6716984777540687277}
   m_Layer: 0
   m_Name: Trigger
   m_TagString: Untagged
@@ -76,8 +77,20 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.7, y: 0.9}
+  m_Size: {x: 0.5, y: 0.5}
   m_EdgeRadius: 0
+--- !u!114 &6716984777540687277
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4704555630147350716}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 109924efe01a0ea47995721dce9ab65c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerTriggerZone
 --- !u!1 &7211409368678876608
 GameObject:
   m_ObjectHideFlags: 0
@@ -177,7 +190,7 @@ BoxCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: 0, y: -0.4}
+  m_Offset: {x: 0, y: -0.58}
   m_SpriteTilingProperty:
     border: {x: 0, y: 0, z: 0, w: 0}
     pivot: {x: 0.5, y: 0.5}
@@ -187,7 +200,7 @@ BoxCollider2D:
     drawMode: 0
     adaptiveTiling: 0
   m_AutoTiling: 0
-  m_Size: {x: 0.6, y: 0.2}
+  m_Size: {x: 0.85, y: 0.83}
   m_EdgeRadius: 0
 --- !u!114 &5513063776755936007
 MonoBehaviour:
@@ -249,7 +262,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9a576f52ed204684594483c047bbb85e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Player.PlayerInteraction
-  interactRange: 1.2
+  triggerTransform: {fileID: 7950882307045738751}
+  triggerZone: {fileID: 6716984777540687277}
+  triggerOffset: 0.45
   interactableLayer:
     serializedVersion: 2
     m_Bits: 4294967295
