@@ -123,7 +123,7 @@
     {
       "id": "lobby_memo_5",
       "speaker": "지배인의 메모",
-      "text": "업무가 끝나면 2층 204호 객실 정리까지 마치고 퇴근하시면 됩니다. 수고하세요.",
+      "text": "업무가 끝나면 3층 310호 객실 정리까지 마치고 퇴근하시면 됩니다. 수고하세요.",
       "nextNodeId": "lobby_memo_6",
       "triggerEvent": "",
       "choices": []
