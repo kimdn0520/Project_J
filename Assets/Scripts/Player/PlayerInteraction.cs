@@ -11,11 +11,16 @@ namespace Player
         [Header("Trigger References")]
         [SerializeField] private Transform triggerTransform;
         [SerializeField] private PlayerTriggerZone triggerZone;
-        [SerializeField] private float triggerOffset = 0.45f;
 
-        [Header("Fallback Interaction Settings")]
+        [Header("Directional Offsets (Local)")]
+        [SerializeField] private Vector2 upOffset = new Vector2(0f, 0.65f);
+        [SerializeField] private Vector2 downOffset = new Vector2(0f, -0.95f); // Extra long offset for DOWN facing to escape feet collider
+        [SerializeField] private Vector2 leftOffset = new Vector2(-0.65f, 0f);
+        [SerializeField] private Vector2 rightOffset = new Vector2(0.65f, 0f);
+
+        [Header("Interaction Box Settings")]
         [SerializeField] private LayerMask interactableLayer = ~0; // Default to 'Everything'
-        [SerializeField] private Vector2 interactionBoxSize = new Vector2(0.6f, 0.6f);
+        [SerializeField] private Vector2 interactionBoxSize = new Vector2(0.75f, 0.75f);
         
         [Header("Cooldown Settings")]
         [SerializeField] private float dialogueEndCooldown = 0.3f; // Prevent immediate re-trigger after dialogue ends
@@ -116,57 +121,69 @@ namespace Player
             }
         }
 
-        private void UpdateTriggerPosition()
+        public Vector3 GetTargetTriggerLocalPosition()
         {
-            if (triggerTransform == null || playerController == null)
-                return;
+            if (playerController == null)
+                return downOffset;
 
             Vector2 dir = playerController.LastDirection;
-            if (dir == Vector2.zero)
-                dir = Vector2.down;
+            
+            // Prioritize vertical/horizontal direction
+            if (dir.y < -0.3f)
+                return downOffset;
+            if (dir.y > 0.3f)
+                return upOffset;
+            if (dir.x < -0.3f)
+                return leftOffset;
+            if (dir.x > 0.3f)
+                return rightOffset;
 
-            // Position the child Trigger transform slightly ahead in facing direction
-            triggerTransform.localPosition = dir * triggerOffset;
+            return downOffset; // Fallback to Down
+        }
+
+        private void UpdateTriggerPosition()
+        {
+            if (triggerTransform == null)
+                return;
+
+            triggerTransform.localPosition = GetTargetTriggerLocalPosition();
         }
 
         private void PerformInteraction()
         {
             IInteractable target = null;
 
-            // 1. Check TriggerZone first
-            if (triggerZone != null)
+            Vector3 checkPos = triggerTransform != null ? triggerTransform.position : (transform.position + GetTargetTriggerLocalPosition());
+
+            // 1. Immediate OverlapBox check at current facing Trigger position (100% reliable)
+            Collider2D[] colliders = Physics2D.OverlapBoxAll(checkPos, interactionBoxSize, 0f, interactableLayer);
+            foreach (var col in colliders)
+            {
+                // Ignore self/player colliders
+                if (col.transform.IsChildOf(transform) || col.CompareTag("Player")) continue;
+
+                IInteractable interactable = col.GetComponent<IInteractable>();
+                if (interactable == null)
+                {
+                    interactable = col.GetComponentInParent<IInteractable>();
+                }
+
+                if (interactable != null)
+                {
+                    target = interactable;
+                    break;
+                }
+            }
+
+            // 2. Fallback to TriggerZone cached list if OverlapBox didn't find any target
+            if (target == null && triggerZone != null)
             {
                 target = triggerZone.GetTargetInteractable();
             }
 
-            // 2. Fallback check with OverlapBox if TriggerZone didn't detect an interactable
-            if (target == null)
-            {
-                Vector3 checkPos = triggerTransform != null ? triggerTransform.position : (transform.position + (Vector3)(playerController.LastDirection * triggerOffset));
-                Collider2D[] colliders = Physics2D.OverlapBoxAll(checkPos, interactionBoxSize, 0f, interactableLayer);
-
-                foreach (var col in colliders)
-                {
-                    // Ignore self colliders
-                    if (col.transform.IsChildOf(transform)) continue;
-
-                    IInteractable interactable = col.GetComponent<IInteractable>();
-                    if (interactable == null)
-                    {
-                        interactable = col.GetComponentInParent<IInteractable>();
-                    }
-
-                    if (interactable != null)
-                    {
-                        target = interactable;
-                        break;
-                    }
-                }
-            }
-
             if (target != null)
             {
-                Debug.Log($"[PlayerInteraction] Interacting with target via trigger");
+                Debug.Log($"[PlayerInteraction] Interacting with target via trigger position ({checkPos})");
                 target.Interact();
             }
         }
@@ -176,8 +193,7 @@ namespace Player
             if (playerController == null)
                 playerController = GetComponent<PlayerController>();
 
-            Vector2 dir = playerController != null ? playerController.LastDirection : Vector2.down;
-            Vector3 checkPos = triggerTransform != null ? triggerTransform.position : (transform.position + (Vector3)(dir * triggerOffset));
+            Vector3 checkPos = triggerTransform != null ? triggerTransform.position : (transform.position + GetTargetTriggerLocalPosition());
 
             Gizmos.color = Color.cyan;
             Gizmos.DrawWireCube(checkPos, interactionBoxSize);

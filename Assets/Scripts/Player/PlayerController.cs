@@ -27,6 +27,7 @@ namespace Player
 
         private Vector2 lastDirection = Vector2.down; // Default looking down
         private IPlayerState currentState;
+        private bool isControlBlocked = false;
 
         // Concrete States
         public PlayerIdleState IdleState { get; private set; }
@@ -41,6 +42,9 @@ namespace Player
         {
             get
             {
+                if (isControlBlocked)
+                    return false;
+
                 if (DialogueManager.Instance != null && DialogueManager.Instance.IsDialogueActive)
                     return false;
                 
@@ -48,6 +52,15 @@ namespace Player
                     return false;
 
                 return true;
+            }
+        }
+
+        public void SetControlEnabled(bool enabled)
+        {
+            isControlBlocked = !enabled;
+            if (isControlBlocked)
+            {
+                TransitionToState(BusyState);
             }
         }
 
@@ -122,6 +135,7 @@ namespace Player
 
         public Vector2 GetMoveInput()
         {
+            if (!CanMove) return Vector2.zero;
             if (moveAction == null) return Vector2.zero;
             return moveAction.ReadValue<Vector2>();
         }

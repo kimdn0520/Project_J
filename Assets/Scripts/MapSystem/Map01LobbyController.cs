@@ -22,6 +22,23 @@ namespace MapSystem
 
         private async UniTaskVoid CheckAndStartLobbyEntryDialogue()
         {
+            GameObject playerObj = GameObject.FindWithTag("Player");
+            if (playerObj == null) playerObj = GameObject.Find("Player");
+            Player.PlayerController playerController = playerObj != null ? playerObj.GetComponent<Player.PlayerController>() : null;
+
+            bool entryDone = false;
+            if (SaveManager.Instance != null && SaveManager.Instance.CurrentSaveData != null)
+            {
+                entryDone = SaveManager.Instance.CurrentSaveData.HasFlag(lobbyEntryFlagName);
+            }
+
+            // Immediately block player movement if entry dialogue is pending
+            if (!entryDone && playerController != null)
+            {
+                playerController.SetControlEnabled(false);
+                playerController.SetFacingDirection(Vector2.up);
+            }
+
             // Wait until scene transition completely finishes (fade in complete)
             if (SceneTransitionManager.Instance != null)
             {
@@ -30,30 +47,18 @@ namespace MapSystem
 
             await UniTask.Delay(400, cancellationToken: this.GetCancellationTokenOnDestroy());
 
-            // Set player facing UP (entering into lobby from exterior door)
-            GameObject playerObj = GameObject.FindWithTag("Player");
-            if (playerObj == null) playerObj = GameObject.Find("Player");
-            if (playerObj != null)
+            if (!entryDone && DialogueManager.Instance != null)
             {
-                var playerController = playerObj.GetComponent<Player.PlayerController>();
+                Debug.Log($"[Map01LobbyController] Starting lobby entry dialogue: {lobbyEntryDialogueNodeId}");
+                DialogueManager.Instance.StartDialogue(lobbyEntryDialogueNodeId);
+
+                // Wait until dialogue finishes, then unlock control
+                await UniTask.WaitUntil(() => DialogueManager.Instance.IsDialogueActive, cancellationToken: this.GetCancellationTokenOnDestroy());
+                await UniTask.WaitUntil(() => !DialogueManager.Instance.IsDialogueActive, cancellationToken: this.GetCancellationTokenOnDestroy());
+
                 if (playerController != null)
                 {
-                    playerController.SetFacingDirection(Vector2.up);
-                }
-            }
-
-            if (DialogueManager.Instance != null)
-            {
-                bool entryDone = false;
-                if (SaveManager.Instance != null && SaveManager.Instance.CurrentSaveData != null)
-                {
-                    entryDone = SaveManager.Instance.CurrentSaveData.HasFlag(lobbyEntryFlagName);
-                }
-
-                if (!entryDone)
-                {
-                    Debug.Log($"[Map01LobbyController] Starting lobby entry dialogue: {lobbyEntryDialogueNodeId}");
-                    DialogueManager.Instance.StartDialogue(lobbyEntryDialogueNodeId);
+                    playerController.SetControlEnabled(true);
                 }
             }
         }

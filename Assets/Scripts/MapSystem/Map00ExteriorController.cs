@@ -111,10 +111,10 @@ namespace MapSystem
                 Animator animator = playerObj.GetComponentInChildren<Animator>();
                 SpriteRenderer spriteRenderer = playerObj.GetComponentInChildren<SpriteRenderer>();
 
-                // Lock player control
+                // Lock player control strictly
                 if (playerController != null)
                 {
-                    playerController.TransitionToState(playerController.BusyState);
+                    playerController.SetControlEnabled(false);
                     playerController.SetFacingDirection(Vector2.up);
                 }
 
