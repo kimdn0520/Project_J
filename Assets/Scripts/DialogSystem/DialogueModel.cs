@@ -23,6 +23,7 @@ namespace DialogSystem
     {
         public string id;                 // Unique identifier for the dialogue node
         public string speaker;            // Name of the speaker. Leave blank or null for narration.
+        public string portrait;           // Sprite key for speaker portrait (e.g. enju_portrait_400x400)
         public string text;               // The dialogue text content
         public string nextNodeId;         // The next node ID to go to if there are no choices (default path)
         

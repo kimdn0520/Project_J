@@ -207,6 +207,7 @@ namespace DialogSystem.Editor
                     guid = nodeData.guid,
                     id = nodeData.id,
                     speaker = nodeData.speaker,
+                    portrait = nodeData.portrait,
                     text = nodeData.text,
                     triggerEvent = nodeData.triggerEvent,
                     position = nodeData.position,

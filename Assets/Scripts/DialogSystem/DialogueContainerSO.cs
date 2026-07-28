@@ -11,6 +11,7 @@ namespace DialogSystem
         [Tooltip("The unique ID used in the game to trigger this node (e.g., 'start_game')")]
         public string id;
         public string speaker;
+        public string portrait;
         [TextArea(3, 5)]
         public string text;
         public string triggerEvent;

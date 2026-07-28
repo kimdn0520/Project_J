@@ -20,6 +20,11 @@ namespace DialogSystem
         [Header("UI Panels")]
         [SerializeField] private GameObject dialoguePanel;
 
+        [Header("Portrait Configuration")]
+        [SerializeField] private Image characterImage;
+        [SerializeField] private string defaultPlayerSpeaker = "이은주";
+        [SerializeField] private string defaultPlayerPortrait = "enju_portrait_400x400";
+
         [Header("Text Components")]
         [SerializeField] private TMP_Text speakerText;
         [SerializeField] private TMP_Text dialogueText;
@@ -40,9 +45,37 @@ namespace DialogSystem
 
         private void Awake()
         {
+            EnsureCharacterImageReference();
             HideDialogue();
             HideChoices();
             if (nextIndicator != null) nextIndicator.SetActive(false);
+        }
+
+        private void EnsureCharacterImageReference()
+        {
+            if (characterImage != null) return;
+
+            // 1. Search in canvas children including inactive objects
+            Image[] images = GetComponentsInChildren<Image>(true);
+            foreach (var img in images)
+            {
+                if (img.gameObject.name == "CharacterImg")
+                {
+                    characterImage = img;
+                    return;
+                }
+            }
+
+            // 2. Search scene wide including inactive objects
+            Image[] allImages = Resources.FindObjectsOfTypeAll<Image>();
+            foreach (var img in allImages)
+            {
+                if (img.gameObject.name == "CharacterImg" && img.gameObject.scene == gameObject.scene)
+                {
+                    characterImage = img;
+                    return;
+                }
+            }
         }
 
         private void Update()
@@ -91,6 +124,7 @@ namespace DialogSystem
         {
             dialoguePanel.SetActive(false);
             if (nextIndicator != null) nextIndicator.SetActive(false);
+            if (characterImage != null) characterImage.gameObject.SetActive(false);
         }
 
         public void ShowChoices()
@@ -120,7 +154,7 @@ namespace DialogSystem
         }
 
         /// <summary>
-        /// Displays the speaker name and text using a typewriter effect.
+        /// Displays the speaker name, portrait, and text using a typewriter effect.
         /// </summary>
         public async UniTask DisplayDialogueNodeAsync(DialogueNode node, CancellationToken token)
         {
@@ -130,6 +164,9 @@ namespace DialogSystem
 
             // Trigger cooldown to prevent advance keypress from immediately skipping this text
             TriggerInputCooldown().Forget();
+
+            // Update Portrait (Show/Hide/Change Sprite)
+            UpdatePortraitDisplay(node);
 
             // Handle narration style vs character dialogue style
             if (string.IsNullOrEmpty(node.speaker))
@@ -155,6 +192,44 @@ namespace DialogSystem
             {
                 nextIndicator.SetActive(true);
             }
+        }
+
+        private void UpdatePortraitDisplay(DialogueNode node)
+        {
+            EnsureCharacterImageReference();
+            if (characterImage == null) return;
+
+            string portraitKey = node.portrait;
+
+            // Fallback: If portrait key is not set, but speaker is default player ("이은주"), use default portrait
+            if (string.IsNullOrEmpty(portraitKey) && !string.IsNullOrEmpty(node.speaker) && node.speaker == defaultPlayerSpeaker)
+            {
+                portraitKey = defaultPlayerPortrait;
+            }
+
+            if (!string.IsNullOrEmpty(portraitKey))
+            {
+                Sprite portraitSprite = null;
+                if (SpriteManager.Instance != null)
+                {
+                    portraitSprite = SpriteManager.Instance.Get(portraitKey);
+                }
+
+                if (portraitSprite != null)
+                {
+                    characterImage.sprite = portraitSprite;
+                    characterImage.SetNativeSize();
+                    characterImage.gameObject.SetActive(true);
+                    return;
+                }
+                else
+                {
+                    Debug.LogWarning($"[DialogueUI] Portrait sprite '{portraitKey}' not found in SpriteManager.");
+                }
+            }
+
+            // Hide portrait if no portrait key or sprite found (e.g. narration / monologue / unmapped NPC)
+            characterImage.gameObject.SetActive(false);
         }
 
         private async UniTask RunTypewriterAsync(string text, CancellationToken token)

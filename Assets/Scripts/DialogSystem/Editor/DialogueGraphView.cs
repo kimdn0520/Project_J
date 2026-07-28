@@ -87,6 +87,7 @@ namespace DialogSystem.Editor
         // Visual elements inside the node
         public TextField IdField;
         public TextField SpeakerField;
+        public TextField PortraitField;
         public TextField TextField;
         public TextField TriggerEventField;
 
@@ -145,6 +146,12 @@ namespace DialogSystem.Editor
             SpeakerField.value = Data.speaker;
             SpeakerField.RegisterValueChangedCallback(evt => Data.speaker = evt.newValue);
             extensionContainer.Add(SpeakerField);
+
+            // Portrait Sprite Key
+            PortraitField = new TextField("Portrait Key");
+            PortraitField.value = Data.portrait;
+            PortraitField.RegisterValueChangedCallback(evt => Data.portrait = evt.newValue);
+            extensionContainer.Add(PortraitField);
 
             // Dialogue Multi-line Text
             TextField = new TextField("Text");

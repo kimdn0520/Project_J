@@ -1,7 +1,9 @@
 using System.Collections.Generic;
-using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.U2D;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 public class SpriteManager : SingletonMonoBehaviour<SpriteManager>
 {
@@ -13,49 +15,95 @@ public class SpriteManager : SingletonMonoBehaviour<SpriteManager>
     protected override void Awake()
     {
         base.Awake();
+        Initialize();
     }
 
     public void Initialize()
     {
+        _spriteDic.Clear();
+
         if (spriteAtlasData == null)
         {
-            Debug.LogError("SpriteManager¿¡ SpriteAtlasSO°¡ ÇÒ´çµÇÁö ¾Ê¾Ò½À´Ï´Ù!");
-            return;
+            spriteAtlasData = Resources.Load<SpriteAtlasSO>("SpriteAtlasSO");
         }
 
-        // µî·ÏµÈ ¸ðµç ¾ÆÆ²¶ó½º¸¦ ¼øÈ¸
-        foreach (SpriteAtlas atlas in spriteAtlasData.Atlases)
+        if (spriteAtlasData != null && spriteAtlasData.Atlases != null)
         {
-            // °¢ ¾ÆÆ²¶ó½º¿¡ Æ÷ÇÔµÈ ¸ðµç ½ºÇÁ¶óÀÌÆ®¸¦ °¡Á®¿È.
-            Sprite[] sprites = new Sprite[atlas.spriteCount];
-            atlas.GetSprites(sprites);
-
-            foreach (Sprite sprite in sprites)
+            foreach (SpriteAtlas atlas in spriteAtlasData.Atlases)
             {
-                // ½ºÇÁ¶óÀÌÆ® ÀÌ¸§¿¡¼­ "(Clone)" Á¢¹Ì»ç¸¦ Á¦°Å.
-                string cleanedName = sprite.name.Replace("(Clone)", "");
+                if (atlas == null) continue;
 
-                // Dictionary¿¡ ÀÌ¹Ì °°Àº ÀÌ¸§ÀÇ Å°°¡ ÀÖ´ÂÁö È®ÀÎ.
-                if (_spriteDic.ContainsKey(cleanedName))
+                Sprite[] sprites = new Sprite[atlas.spriteCount];
+                atlas.GetSprites(sprites);
+
+                foreach (Sprite sprite in sprites)
                 {
-                    continue;
-                }
+                    if (sprite == null) continue;
+                    string cleanedName = sprite.name.Replace("(Clone)", "");
 
-                _spriteDic.Add(cleanedName, sprite);
+                    if (!_spriteDic.ContainsKey(cleanedName))
+                    {
+                        _spriteDic.Add(cleanedName, sprite);
+                    }
+                }
             }
         }
     }
 
     public Sprite Get(string spriteName)
     {
-        if (_spriteDic.TryGetValue(spriteName, out Sprite sprite))
+        if (string.IsNullOrEmpty(spriteName)) return null;
+
+        // 1. Try exact dictionary match
+        if (_spriteDic.TryGetValue(spriteName, out Sprite sprite) && sprite != null)
         {
             return sprite;
         }
-        else
+
+        // 2. Partial / Alias matching (e.g. "enju_portrait_400x400" vs "ì´ì€ì£¼_400x400_ë°°ê²½ì œê±°_0")
+        foreach (var kvp in _spriteDic)
         {
-            Debug.LogError($"'${spriteName}' ÀÌ¸§ÀÇ ½ºÇÁ¶óÀÌÆ®¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù. ¾ÆÆ²¶ó½º¿¡ µî·ÏµÇ¾î ÀÖ´ÂÁö È®ÀÎÇØÁÖ¼¼¿ä.");
-            return null;
+            if (kvp.Key.Contains(spriteName) || spriteName.Contains(kvp.Key) ||
+                (spriteName.ToLower().Contains("enju") && (kvp.Key.Contains("ì´ì€ì£¼") || kvp.Key.ToLower().Contains("enju"))))
+            {
+                return kvp.Value;
+            }
         }
+
+#if UNITY_EDITOR
+        // 3. Fallback in Editor: Find sprite directly in Project Assets if Atlas is not packed yet
+        string[] guids = AssetDatabase.FindAssets($"{spriteName} t:Sprite");
+        if (guids.Length == 0 && (spriteName.Contains("enju") || spriteName.Contains("ì´ì€ì£¼")))
+        {
+            guids = AssetDatabase.FindAssets("ì´ì€ì£¼ t:Sprite");
+            if (guids.Length == 0)
+            {
+                guids = AssetDatabase.FindAssets("enju t:Sprite");
+            }
+        }
+
+        if (guids.Length > 0)
+        {
+            string path = AssetDatabase.GUIDToAssetPath(guids[0]);
+            Sprite loadedSprite = AssetDatabase.LoadAssetAtPath<Sprite>(path);
+            if (loadedSprite != null)
+            {
+                _spriteDic[spriteName] = loadedSprite;
+                return loadedSprite;
+            }
+        }
+#endif
+
+        // 4. Fallback in Resources
+        Sprite resSprite = Resources.Load<Sprite>($"Textures/UI/{spriteName}");
+        if (resSprite == null) resSprite = Resources.Load<Sprite>(spriteName);
+        if (resSprite != null)
+        {
+            _spriteDic[spriteName] = resSprite;
+            return resSprite;
+        }
+
+        Debug.LogWarning($"[SpriteManager] Sprite '{spriteName}' not found in Atlas or Resources.");
+        return null;
     }
 }

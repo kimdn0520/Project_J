@@ -68,8 +68,9 @@ namespace DialogSystem
             }
         }
 
-        private void OnDestroy()
+        protected override void OnDestroy()
         {
+            base.OnDestroy();
             dialogueCts?.Cancel();
             dialogueCts?.Dispose();
         }
@@ -259,6 +260,7 @@ namespace DialogSystem
                 {
                     id = string.IsNullOrEmpty(node.id) ? node.guid : node.id,
                     speaker = node.speaker,
+                    portrait = node.portrait,
                     text = node.text,
                     triggerEvent = node.triggerEvent,
                     choices = new List<DialogueChoice>()

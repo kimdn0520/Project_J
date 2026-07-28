@@ -4,12 +4,19 @@ public abstract class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBe
 {
     private static T instance;
     private static readonly object lockObj = new object();
+    private static bool isApplicationQuitting = false;
 
-    // 인스턴스에 접근할 수 있는 프로퍼티
+    public static bool HasInstance => instance != null && !isApplicationQuitting;
+
     public static T Instance
     {
         get
         {
+            if (isApplicationQuitting)
+            {
+                return null;
+            }
+
             lock (lockObj)
             {
                 if (instance == null)
@@ -18,9 +25,17 @@ public abstract class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBe
 
                     if (instance == null)
                     {
+                        if (isApplicationQuitting || !Application.isPlaying)
+                        {
+                            return null;
+                        }
+
                         GameObject singletonObj = new GameObject(typeof(T).Name);
                         instance = singletonObj.AddComponent<T>();
-                        DontDestroyOnLoad(singletonObj);
+                        if (Application.isPlaying && singletonObj.transform.parent == null)
+                        {
+                            DontDestroyOnLoad(singletonObj);
+                        }
                     }
                 }
                 return instance;
@@ -28,17 +43,32 @@ public abstract class SingletonMonoBehaviour<T> : MonoBehaviour where T : MonoBe
         }
     }
 
-    // 인스턴스가 중복될 경우 파괴
     protected virtual void Awake()
     {
         if (instance == null)
         {
             instance = this as T;
-            DontDestroyOnLoad(gameObject);
+            if (Application.isPlaying && transform.parent == null)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
         }
         else if (instance != this)
         {
             Destroy(gameObject);
+        }
+    }
+
+    protected virtual void OnApplicationQuit()
+    {
+        isApplicationQuitting = true;
+    }
+
+    protected virtual void OnDestroy()
+    {
+        if (instance == this)
+        {
+            instance = null;
         }
     }
 }
