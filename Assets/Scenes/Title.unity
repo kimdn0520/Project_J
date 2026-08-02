@@ -684,7 +684,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "\uADC0 \uC57C \uD589"
+  m_text: OverWatch
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 8b72f37b1be17d2469a830e9f8557500, type: 2}
   m_sharedMaterial: {fileID: -6218006584335888419, guid: 8b72f37b1be17d2469a830e9f8557500, type: 2}

@@ -129,7 +129,108 @@ namespace DialogSystem.Editor
             AssetDatabase.Refresh();
 
             EditorUtility.DisplayDialog("Dialogue Exporter", 
-                $"Export successful!\n\nConverted {runtimeNodes.Count} nodes from {guids.Length} graphs.\nSaved to: Assets/Resources/Dialogues/dialogues.bin", "OK");
+                $"Binary Export successful!\n\nConverted {runtimeNodes.Count} nodes from {guids.Length} graphs.\nSaved to: Assets/Resources/Dialogues/dialogues.bin", "OK");
+        }
+
+        [MenuItem("Tools/Dialogue/Export Graphs to JSON")]
+        public static void ExportToJSON()
+        {
+            string[] guids = AssetDatabase.FindAssets("t:DialogueContainerSO");
+            if (guids.Length == 0)
+            {
+                EditorUtility.DisplayDialog("Dialogue Exporter", "No DialogueGraph (DialogueContainerSO) assets found in the project.", "OK");
+                return;
+            }
+
+            List<DialogueNode> runtimeNodes = new List<DialogueNode>();
+
+            foreach (string assetGuid in guids)
+            {
+                string path = AssetDatabase.GUIDToAssetPath(assetGuid);
+                DialogueContainerSO graphAsset = AssetDatabase.LoadAssetAtPath<DialogueContainerSO>(path);
+
+                if (graphAsset == null) continue;
+
+                Dictionary<string, string> guidToIdMap = new Dictionary<string, string>();
+                
+                foreach (var node in graphAsset.dialogueNodes)
+                {
+                    if (string.IsNullOrEmpty(node.guid)) continue;
+                    string gameId = string.IsNullOrEmpty(node.id) ? node.guid : node.id;
+                    guidToIdMap[node.guid] = gameId;
+                }
+
+                foreach (var node in graphAsset.dialogueNodes)
+                {
+                    DialogueNode runtimeNode = new DialogueNode
+                    {
+                        id = string.IsNullOrEmpty(node.id) ? node.guid : node.id,
+                        speaker = node.speaker,
+                        portrait = node.portrait,
+                        text = node.text,
+                        triggerEvent = node.triggerEvent,
+                        choices = new List<DialogueChoice>()
+                    };
+
+                    string linearNextNodeId = "";
+                    var linearLink = graphAsset.nodeLinks.Find(l => l.baseNodeGuid == node.guid && l.portName == "Next");
+                    if (linearLink != null && guidToIdMap.TryGetValue(linearLink.targetNodeGuid, out var nextId))
+                    {
+                        linearNextNodeId = nextId;
+                    }
+                    else if (!string.IsNullOrEmpty(node.nextNodeGuid) && guidToIdMap.TryGetValue(node.nextNodeGuid, out var fallbackId))
+                    {
+                        linearNextNodeId = fallbackId;
+                    }
+
+                    runtimeNode.nextNodeId = linearNextNodeId;
+
+                    for (int i = 0; i < node.choices.Count; i++)
+                    {
+                        var choice = node.choices[i];
+                        string targetChoiceNodeId = "";
+
+                        var choiceLink = graphAsset.nodeLinks.Find(l => l.baseNodeGuid == node.guid && l.portName == $"Choice_{i}");
+                        if (choiceLink != null && guidToIdMap.TryGetValue(choiceLink.targetNodeGuid, out var choiceNextId))
+                        {
+                            targetChoiceNodeId = choiceNextId;
+                        }
+                        else if (!string.IsNullOrEmpty(choice.nextNodeGuid) && guidToIdMap.TryGetValue(choice.nextNodeGuid, out var fallbackChoiceNextId))
+                        {
+                            targetChoiceNodeId = fallbackChoiceNextId;
+                        }
+
+                        runtimeNode.choices.Add(new DialogueChoice
+                        {
+                            text = choice.text,
+                            nextNodeId = targetChoiceNodeId,
+                            requiredFlag = choice.requiredFlag,
+                            requiredItem = choice.requiredItem,
+                            setFlag = choice.setFlag,
+                            triggerEvent = choice.triggerEvent
+                        });
+                    }
+
+                    runtimeNodes.Add(runtimeNode);
+                }
+            }
+
+            DialogueData fullData = new DialogueData { dialogues = runtimeNodes };
+            string jsonString = JsonUtility.ToJson(fullData, true);
+
+            string directoryPath = Path.Combine(Application.dataPath, "Resources/Dialogues");
+            if (!Directory.Exists(directoryPath))
+            {
+                Directory.CreateDirectory(directoryPath);
+            }
+
+            string outputPath = Path.Combine(directoryPath, "chapter1_dialogues.json");
+            File.WriteAllText(outputPath, jsonString);
+
+            AssetDatabase.Refresh();
+
+            EditorUtility.DisplayDialog("Dialogue Exporter", 
+                $"JSON Export successful!\n\nConverted {runtimeNodes.Count} nodes from {guids.Length} graphs.\nSaved to: Assets/Resources/Dialogues/chapter1_dialogues.json", "OK");
         }
     }
 }

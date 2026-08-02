@@ -98,7 +98,15 @@ namespace DialogSystem.Editor
             };
             toolbar.Add(saveBtn);
 
-            // Export shortcut button
+            // Export JSON button
+            var exportJsonBtn = new Button(() => DialogueBinaryExporter.ExportToJSON())
+            {
+                text = "Export JSON"
+            };
+            exportJsonBtn.style.backgroundColor = new Color(0.2f, 0.5f, 0.2f);
+            toolbar.Add(exportJsonBtn);
+
+            // Export Binary button
             var exportBtn = new Button(() => DialogueBinaryExporter.ExportToBinary())
             {
                 text = "Export Binary"
