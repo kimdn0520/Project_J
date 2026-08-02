@@ -11,7 +11,7 @@
     {
       "id": "exterior_intro_2",
       "speaker": "",
-      "text": "(은주, 낡은 호텔 입구 간판을 바라본다)",
+      "text": "(낡은 호텔 입구 간판을 바라본다)",
       "nextNodeId": "exterior_intro_3",
       "triggerEvent": "",
       "choices": []
@@ -35,7 +35,7 @@
     {
       "id": "exterior_intro_5",
       "speaker": "이은주",
-      "text": "은호의 이번 달 투석비에, 쌓여있는 학자금 대출까지..\n시급이 일반 알바의 5배라면... 귀신이 나온다 해도 일해야 해.",
+      "text": "은호의 이번 달 병원비에, 쌓여있는 학자금 대출까지..\n시급이 일반 알바의 5배라면... 귀신이 나온다 해도 일해야 해.",
       "nextNodeId": "exterior_intro_6",
       "triggerEvent": "",
       "choices": []
@@ -51,7 +51,7 @@
     {
       "id": "exterior_intro_7",
       "speaker": "이은주",
-      "text": "어? 방금 문이 저절로 열린 건가……?",
+      "text": "어? 문이 저절로 열린 건가……?",
       "nextNodeId": "exterior_intro_8",
       "triggerEvent": "",
       "choices": []
@@ -75,7 +75,7 @@
     {
       "id": "lobby_entry_2",
       "speaker": "",
-      "text": "(은주, 텅 빈 프런트 카운터 쪽을 두리번거린다)",
+      "text": "(텅 빈 프런트 카운터 쪽을 두리번거린다)",
       "nextNodeId": "lobby_entry_3",
       "triggerEvent": "",
       "choices": []
@@ -123,7 +123,7 @@
     {
       "id": "lobby_memo_5",
       "speaker": "지배인의 메모",
-      "text": "업무가 끝나면 3층 310호 객실 정리까지 마치고 퇴근하시면 됩니다. 수고하세요.",
+      "text": "업무가 끝나면 4층 404호 객실 정리까지 마치고 퇴근하시면 됩니다. 수고하세요.",
       "nextNodeId": "lobby_memo_6",
       "triggerEvent": "",
       "choices": []
@@ -131,7 +131,7 @@
     {
       "id": "lobby_memo_6",
       "speaker": "이은주",
-      "text": "어휴... 첫날부터 지배인님이 자리를 비우다니.",
+      "text": "첫날부터 지배인님이 자리를 비우다니. 이런..",
       "nextNodeId": "lobby_memo_7",
       "triggerEvent": "",
       "choices": []
@@ -147,7 +147,7 @@
     {
       "id": "lobby_system_tutorial_1",
       "speaker": "시스템",
-      "text": "<기본 조작법 안내>\n- 이동: [ 방향키 ]\n- 조사 / 상호작용: [ Space ]\n- 인벤토리 및 업무지시서 확인: [ I ] 키\n- 시스템 설정 및 저장: [esc] 키",
+      "text": "이동: [ 방향키 ]\n- 조사 / 상호작용: [ Space ]\n- 인벤토리: [ I ] 키\n- 시스템 설정 및 저장: [esc] 키",
       "nextNodeId": "lobby_system_tutorial_2",
       "triggerEvent": "",
       "choices": []

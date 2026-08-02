@@ -14,7 +14,7 @@ namespace Core
         [Header("Sorting Settings")]
         [SerializeField] private int baseOrder = 5000;
         [SerializeField] private float yOffset = 0f;
-        [SerializeField] private bool isStatic = false;
+        public bool isStatic = false;
 
         [Header("Parent Relative Sorting (For Desk Items, Memos, etc.)")]
         [SerializeField] private bool followParentYSort = false;

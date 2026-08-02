@@ -21,7 +21,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Maps/Map_01_Start.unity
     guid: 28ae1222be60c1d4588bf8021e8a5120
   - enabled: 1
-    path: Assets/Scenes/Maps/Map_02_Corridor.unity
+    path: Assets/Scenes/Maps/Map_01_Corridor.unity
     guid: 569462ea2b45b7f4eb284c5222972e51
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
